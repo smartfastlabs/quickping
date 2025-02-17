@@ -1,11 +1,9 @@
-from typing import List
-
 from quickping import listeners
 from quickping.models import Thing
 
 
 def on_change(
-    *things: List[Thing],
+    *things: list[Thing],
 ):
     def decorator(func):
         return listeners.ChangeListener(

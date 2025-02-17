@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import List
 
 from quickping import listeners
 from quickping.models import Thing
@@ -7,7 +6,7 @@ from quickping.models import Thing
 
 def on_idle(
     timedelta: timedelta,
-    *things: List[Thing],
+    *things: list[Thing],
 ):
     def decorator(func):
         listeners.IdleListener(

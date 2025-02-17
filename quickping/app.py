@@ -1,7 +1,12 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from listeners import ChangeListener, EventListener, HTTPListener, IdleListener
+
+    try:
+        from appdaemon.plugins.hass.hassapi import Hass
+    except ImportError:
+        Hass = None
 
 import inspect
 
@@ -18,19 +23,20 @@ def wrap(func, name):
 
 
 class QuickpingApp:
-    change_listeners: List["ChangeListener"]
-    event_listeners: List["EventListener"]
-    idle_listeners: List["IdleListener"]
-    http_listeners: List["HTTPListener"]
+    change_listeners: list["ChangeListener"]
+    event_listeners: list["EventListener"]
+    idle_listeners: list["IdleListener"]
+    http_listeners: list["HTTPListener"]
     handler_path: str
+    app_daemon: Optional["Hass"]
 
     def __init__(
         self,
         handler_path: str = "handlers",
-        event_listeners=Optional[List["EventListener"]],
-        change_listeners=Optional[List["ChangeListener"]],
-        idle_listeners=Optional[List["IdleListener"]],
-        http_listeners=Optional[List["HTTPListener"]],
+        event_listeners: list["EventListener"] | None = None,
+        change_listeners: list["ChangeListener"] | None = None,
+        idle_listeners: list["IdleListener"] | None = None,
+        http_listeners: list["HTTPListener"] | None = None,
     ):
         self.change_listeners = change_listeners
         self.idle_listeners = idle_listeners
@@ -103,3 +109,12 @@ class QuickpingApp:
                 args.append("MISSING")
 
         return args
+
+    def get_entity(self, entity_id: str):
+        if not self.app_daemon:
+            return
+
+        return self.app_daemon.get_entity(entity_id)
+
+    def get_thing(self, thing_id: str) -> Thing | None:
+        return Thing.instances.get(thing_id)

@@ -1,4 +1,4 @@
-from quickping.models import AndComparer, CallableComparer, OrComparer
+from quickping.models import CallableComparer
 
 
 def test_basic(test_light):

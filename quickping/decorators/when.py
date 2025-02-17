@@ -6,10 +6,7 @@ def when(comparer: Comparer):
     print("123 when comparer", comparer)
 
     def decorator(func):
-        if isinstance(func, listeners.BaseListener):
-            func.whens.append(comparer)
-
-        elif hasattr(func, "whens"):
+        if isinstance(func, listeners.BaseListener) or hasattr(func, "whens"):
             func.whens.append(comparer)
 
         else:

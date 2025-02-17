@@ -1,26 +1,24 @@
-from typing import TYPE_CHECKING, Any, Optional
-
-from appdaemon.entity import Entity
+from typing import TYPE_CHECKING, Optional
 
 from .sensor import SensorValue
 
 if TYPE_CHECKING:
-    from quickping.app import AppDaemonApp
+    from quickping.app import QuickpingApp
 
 
 class Base:
     id: str
-    quickping: Optional["AppDaemonApp"] = None
+    quickping: Optional["QuickpingApp"] = None
 
     def __init__(
         self,
         id: str,
-        quickping: Optional["AppDaemonApp"] = None,
+        quickping: Optional["QuickpingApp"] = None,
     ):
         self.id = id
         self.quickping = quickping
 
-    def load(self, qp: "AppDaemonApp") -> "Base":
+    def load(self, qp: "QuickpingApp") -> "Base":
         self.quickping = qp
         result = self.on_load()
         for name, value in self.__annotations__.items():

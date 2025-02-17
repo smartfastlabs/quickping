@@ -1,14 +1,10 @@
-from typing import Any, Callable, List, Optional
+from quickping.models import Change, Thing
 
-from appdaemon.entity import Entity
-
-from ..models import Change, History, Thing
 from .base import BaseListener
 
 
 class ChangeListener(BaseListener):
-    things: Optional[List[Thing]] = None
-    history: Optional[History] = None
+    things: list[Thing] | None = None
 
     async def on_change(
         self,
@@ -17,7 +13,7 @@ class ChangeListener(BaseListener):
         old: str,
         new: str,
         kwargs: dict,
-    ):
+    ) -> None:
         if not self.is_active():
             return
 
@@ -30,9 +26,5 @@ class ChangeListener(BaseListener):
         args = self.quickping.build_args(
             self.func,
             change=change,
-            history=self.history,
         )
         await self.func(*args)
-
-        if self.history is not None:
-            self.history.add(change)

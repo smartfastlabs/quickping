@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Callable, List, Optional
 
-from ..models import Thing
+from quickping.models import Thing
+
 from .base import BaseListener
 
 
@@ -10,15 +11,17 @@ from .base import BaseListener
 class IdleListener(BaseListener):
     func: Callable
     name: str
-    things: List[Thing]
+    things: list[Thing]
     timedelta: timedelta
-    last_run: datetime = datetime.now()
+    last_run: datetime | None = None
 
-    def is_idle(self):
+    def is_idle(self) -> bool:
         if not self.is_active():
             return False
+
         if self.last_run is None:
             return True
+
         return datetime.now() - self.last_run > self.timedelta
 
     async def on_change(
@@ -28,5 +31,5 @@ class IdleListener(BaseListener):
         old: str,
         new: str,
         kwargs: dict,
-    ):
+    ) -> None:
         self.last_run = datetime.now()

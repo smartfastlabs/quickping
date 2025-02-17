@@ -1,9 +1,9 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from quickping import listeners
 
 
-def on_event(event: Optional[str] = None, **entity_filters: Dict[str, Any]):
+def on_event(event: str | None = None, **entity_filters: dict[str, Any]):
     def decorator(func):
         return listeners.EventListener(
             name=f"{func.__module__}.{func.__name__}",

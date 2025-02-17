@@ -1,12 +1,13 @@
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from .base import BaseListener
 
 
 class EventListener(BaseListener):
-    entity_filters: Dict[str, Any]
+    entity_filters: dict[str, Any]
     event_filter: str
-    filter: Optional[Callable[[str, Dict[str, Any]], bool]] = None
+    filter: Callable[[str, dict[str, Any]], bool] | None = None
 
     def wants_event(self, event: str, entity: dict) -> bool:
         if not self.is_active():
@@ -26,9 +27,8 @@ class EventListener(BaseListener):
             if key not in entity:
                 return False
 
-            if callable(value):
-                if not value(entity[key]):
-                    return False
+            if callable(value) and not value(entity[key]):
+                return False
 
             if entity[key] != value:
                 return False

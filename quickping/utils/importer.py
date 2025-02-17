@@ -1,8 +1,7 @@
 import importlib
 import os
 import sys
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from quickping import listeners
 
@@ -11,7 +10,9 @@ def fix_name(name: str) -> str:
     return name.split(".")[0].replace("-", "_")
 
 
-def unload_directory(path: str, ignore: List[str] = []):
+def unload_directory(path: str, ignore: list[str] | None = None):
+    if ignore is None:
+        ignore = []
     for name, module in list(sys.modules.items()):
         if (
             module
@@ -19,12 +20,11 @@ def unload_directory(path: str, ignore: List[str] = []):
             and hasattr(module, "__file__")
             and module.__file__
             and module.__file__.startswith(path)
-        ):
-            if name in sys.modules:
-                del sys.modules[name]
+        ) and name in sys.modules:
+            del sys.modules[name]
 
 
-def load_directory(path: str) -> Dict[str, Any]:
+def load_directory(path: str) -> dict[str, Any]:
     modules = {
         "listeners": listeners,
     }

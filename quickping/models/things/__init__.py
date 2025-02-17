@@ -1,4 +1,4 @@
-from .collection import Collection
-from .device import Device
-from .sensor import SensorValue
-from .thing import Thing
+from .collection import Collection as Collection
+from .device import Device as Device
+from .sensor import SensorValue as SensorValue
+from .thing import Thing as Thing

@@ -3,14 +3,14 @@ class Singleton:
 
 
 class SingletonPerId:
-    instances: dict[str, "TrackInstances"]
+    instances: dict[str, "SingletonPerId"]
 
-    def __new__(cls, id, *args, **kwargs):
+    def __new__(cls, id: str, *args, **kwargs) -> "SingletonPerId":  # type: ignore
         if not hasattr(cls, "instances"):
             cls.instances = {}
 
         if id not in cls.instances:
             cls.instances[id] = super().__new__(cls)
-            cls.instances[id].__init__(id, *args, **kwargs)
+            cls.instances[id].__init__(id, *args, **kwargs)  # type: ignore
 
         return cls.instances[id]

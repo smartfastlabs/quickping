@@ -1,12 +1,12 @@
-from typing import Any, Optional
+from typing import Any
 
-from appdaemon.entity import Entity
+from appdaemon.entity import Entity  # type: ignore
 
-from ..comparer import CallableComparer
+from quickping.models.comparer import CallableComparer
 
 
 class SensorValue:
-    entity: Optional[Entity] = None
+    entity: Entity | None = None
     name: str
 
     def __init__(self, name: str):
@@ -18,17 +18,17 @@ class SensorValue:
             return
         return getattr(self.entity.attributes, self.name)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
         return CallableComparer(lambda: self.value == other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> CallableComparer:
         return CallableComparer(lambda: self.value < other)
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> CallableComparer:
         return CallableComparer(lambda: self.value <= other)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> CallableComparer:
         return CallableComparer(lambda: self.value > other)
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> CallableComparer:
         return CallableComparer(lambda: self.value >= other)

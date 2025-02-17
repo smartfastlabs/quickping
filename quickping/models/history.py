@@ -1,16 +1,19 @@
+from collections.abc import Iterable
 from datetime import datetime, timedelta
+
+from quickping.models import Change
 
 
 class History:
     def __init__(self, minutes: int):
         self.minutes = minutes
-        self._changes = []
+        self._changes: list[Change] = []
 
-    def add(self, change):
+    def add(self, change: Change) -> None:
         self._changes.append(change)
         self.trim()
 
-    def trim(self):
+    def trim(self) -> list[Change]:
         now = datetime.now()
         td = timedelta(minutes=self.minutes)
         self._changes = [
@@ -18,8 +21,8 @@ class History:
         ]
         return self._changes
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.trim())
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Change]:
         return iter(self.trim())
