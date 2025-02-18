@@ -9,7 +9,10 @@ class AppDaemonApp(hass.Hass):
     quickping: QuickpingApp
 
     async def initialize(self) -> None:
-        self.quickping = QuickpingApp(self.handler_path)
+        self.quickping = QuickpingApp(
+            self.handler_path,
+            app_daemon=self,
+        )
         self.quickping.load_handlers()
 
         self.listen_event(self.on_event)

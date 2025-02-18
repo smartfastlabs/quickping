@@ -40,12 +40,14 @@ class QuickpingApp:
         change_listeners: list["ChangeListener"] | None = None,
         idle_listeners: list["IdleListener"] | None = None,
         http_listeners: list["HTTPListener"] | None = None,
+        app_daemon: Optional["Hass"] = None,
     ):
         self.change_listeners = change_listeners or []
         self.idle_listeners = idle_listeners or []
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
         self.handler_path = handler_path
+        self.app_daemon = app_daemon
 
     def load_handlers(self) -> None:
         handlers = load_directory(self.handler_path)

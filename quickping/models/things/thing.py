@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 from quickping.models.comparer import CallableComparer
 from quickping.models.singletons import SingletonPerId
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 class Thing(Base, SingletonPerId):
     entity: Optional["Entity"] = None
+    instances: ClassVar[dict[str, "Thing"]] = {}  # type: ignore
 
     def __init__(
         self,

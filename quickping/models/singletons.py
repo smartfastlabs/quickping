@@ -6,7 +6,7 @@ class SingletonPerId:
     instances: dict[str, "SingletonPerId"]
 
     def __new__(cls, id: str, *args, **kwargs) -> "SingletonPerId":  # type: ignore
-        if not hasattr(cls, "instances"):
+        if getattr(cls, "instances", None) is None:
             cls.instances = {}
 
         if id not in cls.instances:
