@@ -56,7 +56,7 @@ class QuickpingApp:
         self.idle_listeners = handlers["listeners"].IdleListener.instances
         self.http_listeners = handlers["listeners"].HTTPListener.instances
 
-        for thing in Thing.instances.values():
+        for thing in list(Thing.instances.values()):
             if hasattr(thing, "load"):
                 thing.load(self)
 

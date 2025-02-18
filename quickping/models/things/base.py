@@ -12,10 +12,10 @@ class Base:
 
     def __init__(
         self,
-        id: str,
+        _id: str,
         quickping: Optional["QuickpingApp"] = None,
     ):
-        self.id = id
+        self.id = _id
         self.quickping = quickping
 
     def load(self, qp: "QuickpingApp") -> "Base":

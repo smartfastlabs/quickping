@@ -1,12 +1,10 @@
 from typing import Any
 
-from appdaemon.entity import Entity  # type: ignore
-
 from quickping.models.comparer import CallableComparer
 
 
 class SensorValue:
-    entity: Entity | None = None
+    entity: Any
     name: str
 
     def __init__(self, name: str):
@@ -16,7 +14,8 @@ class SensorValue:
     def value(self) -> Any:
         if self.entity is None:
             return
-        return getattr(self.entity.attributes, self.name)
+        if hasattr(self.entity, "attributes"):
+            return getattr(self.entity.attributes, self.name)
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
         return CallableComparer(lambda: self.value == other)

@@ -18,14 +18,14 @@ class Thing(Base, SingletonPerId):
 
     def __init__(
         self,
-        id: str,
+        _id: str,
         entity: Optional["Entity"] = None,
         quickping: Optional["QuickpingApp"] = None,
     ):
-        super().__init__(id, quickping)
+        super().__init__(_id, quickping)
         self.entity = entity
         if entity is None and quickping is not None:
-            self.entity = quickping.get_entity(id)
+            self.entity = quickping.get_entity(_id)
 
     @property
     def state(self) -> Any:
@@ -46,7 +46,7 @@ class Thing(Base, SingletonPerId):
             return False
         return hasattr(self.entity, name)
 
-    async def call_service(self, service: str, **kwargs: dict[str, Any]) -> None:
+    async def call_service(self, service: str, **kwargs: Any) -> None:
         if self.entity:
             await self.entity.call_service(service, **kwargs)
 
@@ -68,7 +68,9 @@ class Thing(Base, SingletonPerId):
         return self
 
     def is_(
-        self, state: str | None = None, **kwargs: dict[str, Any]
+        self,
+        state: str | None = None,
+        **kwargs: Any,
     ) -> CallableComparer:
         def check() -> bool:
             if state is not None and self.state != state:
