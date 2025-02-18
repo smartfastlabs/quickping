@@ -10,7 +10,10 @@ def fix_name(name: str) -> str:
     return name.split(".")[0].replace("-", "_")
 
 
-def unload_directory(path: str, ignore: list[str] | None = None):
+def unload_directory(
+    path: str,
+    ignore: list[str] | None = None,
+) -> None:
     if ignore is None:
         ignore = []
     for name, module in list(sys.modules.items()):
@@ -43,10 +46,10 @@ def load_directory(path: str) -> dict[str, Any]:
 
 
 def load_file(module_name: str, path: str) -> Any:
-    spec = importlib.util.spec_from_file_location(
+    spec = importlib.util.spec_from_file_location(  # type: ignore
         module_name,
         path,
     )
-    module = importlib.util.module_from_spec(spec)
+    module = importlib.util.module_from_spec(spec)  # type: ignore
     spec.loader.exec_module(module)
     return module

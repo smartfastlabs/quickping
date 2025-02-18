@@ -28,6 +28,3 @@ class Collection(Thing):
             if isinstance(value, Collection | Thing):
                 value.load(cls.quickping)
         return cls()
-
-    def get(self, id: str) -> Thing | None:
-        return self.things.get(id, None)

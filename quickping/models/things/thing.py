@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Optional
 
 from quickping.models.comparer import CallableComparer
@@ -82,3 +83,17 @@ class Thing(Base, SingletonPerId):
             return True
 
         return CallableComparer(check)
+
+    def listen_state(self, func: Callable) -> None:
+        if self.entity:
+            self.entity.listen_state(func, self.entity)
+        else:
+            raise ValueError("Entity not set on Thing")
+
+    @classmethod
+    def get(cls, id: str) -> Optional["Thing"]:
+        thing: SingletonPerId | None = cls.instances.get(id, None)
+        if isinstance(thing, Thing):
+            return thing
+
+        return None

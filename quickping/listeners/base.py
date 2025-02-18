@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from quickping.models import Comparer
+    from quickping.models import Comparer, Thing
 
 DEFAULT_LISTENERS: list["BaseListener"] = []
 
@@ -13,12 +13,14 @@ class BaseListener:
     instances: list["BaseListener"] = DEFAULT_LISTENERS
     quickping: Any = None
     disabled: bool = False
-    whens: list["Comparer"] = []
+    whens: list["Comparer"]
+    things: list["Thing"]
 
-    def __init__(self, name: str, func: Callable, **kwargs: dict[str, Any]):
+    def __init__(self, name: str, func: Callable, **kwargs: Any):
         self.name = name
         self.func = func
         self.whens = []
+        self.things = []
         if hasattr(func, "disabled"):
             self.disabled = func.disabled
         if hasattr(func, "whens"):
@@ -38,5 +40,5 @@ class BaseListener:
     def is_active(self) -> bool:
         return (not self.disabled) and all(self.whens)
 
-    def __call__(self, *args: tuple[Any], **kwargs: dict[str, Any]) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.func(*args, **kwargs)

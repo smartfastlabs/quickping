@@ -2,7 +2,14 @@ import importlib
 import os
 
 from . import app, decorators, models
-from .models import *
+from .app import QuickpingApp as QuickpingApp
+from .models import (
+    Change as Change,
+    Collection as Collection,
+    Device as Device,
+    SensorValue as SensorValue,
+    Thing as Thing,
+)
 from .utils import importer
 
 

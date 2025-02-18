@@ -1,7 +1,12 @@
 import pytest
 from dobles import InstanceDouble
 
-from quickping import Device
+from quickping import Device, QuickpingApp
+
+
+@pytest.fixture
+def test_quickping():
+    return QuickpingApp()
 
 
 @pytest.fixture

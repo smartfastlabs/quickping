@@ -1,11 +1,9 @@
-from quickping.models import Change, Thing
+from quickping.models import Change
 
 from .base import BaseListener
 
 
 class ChangeListener(BaseListener):
-    things: list[Thing] | None = None
-
     async def on_change(
         self,
         thing_id: str,
