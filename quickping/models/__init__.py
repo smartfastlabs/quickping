@@ -5,7 +5,6 @@ from .comparer import (
     CallableComparer as CallableComparer,
     Comparer as Comparer,
 )
-from .history import History as History
 from .things import (
     Attribute as Attribute,
     Attributes as Attributes,
