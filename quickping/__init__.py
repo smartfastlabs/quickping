@@ -15,7 +15,6 @@ from .models import (
     Change as Change,
     Collection as Collection,
     Device as Device,
-    SensorValue as SensorValue,
     Thing as Thing,
 )
 from .utils import importer

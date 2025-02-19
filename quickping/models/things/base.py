@@ -2,7 +2,6 @@ from inspect import isclass
 from typing import TYPE_CHECKING, Optional
 
 from .attribute import Attribute, Attributes
-from .sensor import SensorValue
 
 if TYPE_CHECKING:
     from quickping.app import QuickpingApp
@@ -25,7 +24,7 @@ class Base:
         result = self.on_load()
 
         for name, value in self.__annotations__.items():
-            if value in (SensorValue, Attribute):
+            if value == Attribute:
                 getattr(self, name).entity = qp.get_entity(self.id)
 
             elif isclass(value) and issubclass(value, Attributes):

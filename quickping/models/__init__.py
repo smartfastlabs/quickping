@@ -10,6 +10,5 @@ from .things import (
     Attributes as Attributes,
     Collection as Collection,
     Device as Device,
-    SensorValue as SensorValue,
     Thing as Thing,
 )
