@@ -7,6 +7,8 @@ from .comparer import (
 )
 from .history import History as History
 from .things import (
+    Attribute as Attribute,
+    Attributes as Attributes,
     Collection as Collection,
     Device as Device,
     SensorValue as SensorValue,

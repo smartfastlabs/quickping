@@ -3,7 +3,7 @@ from typing import Annotated
 import pytest
 from dobles import InstanceDouble
 
-from quickping import Collection, Device, QuickpingApp
+from quickping import Attribute, Attributes, Collection, Device, QuickpingApp
 
 
 @pytest.fixture
@@ -19,6 +19,18 @@ def test_light_entity():
         state="on",
         brightness=255,
     )
+
+
+@pytest.fixture
+def TestComplexThing():
+    class Inner(Device):
+        class A(Attributes):
+            temperature: Annotated[Attribute, int]
+            color: Annotated[Attribute, str]
+
+        attributes: A
+
+    return Inner
 
 
 @pytest.fixture

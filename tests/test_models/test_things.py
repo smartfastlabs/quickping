@@ -1,3 +1,6 @@
+from quickping.models.comparer import Comparer
+
+
 def test_is(test_light):
     assert test_light.is_("on")
     assert not test_light.is_("off")
@@ -13,3 +16,9 @@ def test_is(test_light):
     assert not test_light.is_("on", brightness=0)
     assert not test_light.is_("off", brightness=0)
     assert test_light.is_(state="on", brightness=255)
+
+
+def test_attributes(TestComplexThing, test_quickping):
+    thing = TestComplexThing("thing.complex")
+    thing.load(test_quickping)
+    assert isinstance(thing.attributes.temperature == 10, Comparer)

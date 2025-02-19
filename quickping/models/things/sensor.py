@@ -7,7 +7,8 @@ class SensorValue:
     entity: Any
     name: str
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, entity: Any = None):
+        self.entity = entity
         self.name = name
 
     @property

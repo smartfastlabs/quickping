@@ -17,7 +17,7 @@ class CollectionMeta(type):
         raise AttributeError(f"{cls.__name__} has no attribute {name}")
 
 
-class Collection(Thing, metaclass=CollectionMeta):
+class Collection(Thing):
     things: dict[str, Thing]
     instance: Optional["Collection"] = None
 

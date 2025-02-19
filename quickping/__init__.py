@@ -10,6 +10,8 @@ from .decorators.on_idle import on_idle as on_idle
 from .decorators.route import route as route
 from .decorators.when import when as when
 from .models import (
+    Attribute as Attribute,
+    Attributes as Attributes,
     Change as Change,
     Collection as Collection,
     Device as Device,
