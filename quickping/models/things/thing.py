@@ -68,6 +68,12 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         self.entity = self.quickping.get_entity(self.id)
         return self
 
+    def is_on(self) -> CallableComparer:
+        return self.is_("on")
+
+    def is_off(self) -> CallableComparer:
+        return self.is_("off")
+
     def is_(
         self,
         state: str | None = None,
