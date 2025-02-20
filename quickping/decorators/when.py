@@ -4,10 +4,14 @@ from quickping import listeners
 from quickping.models import Comparer
 
 
-def when(comparer: Comparer) -> Callable:
+def when(*comparers: Comparer) -> Callable:
     def decorator(
         func: Callable | listeners.ChangeListener,
     ) -> listeners.ChangeListener:
+        comparer = comparers[0]
+        if len(comparers) > 1:
+            for c in comparers[1:]:
+                comparer = comparer & c
         if isinstance(func, listeners.ChangeListener):
             return func.add_when(comparer)
 
