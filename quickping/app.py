@@ -98,7 +98,10 @@ class QuickpingApp:
             if isinstance(param.annotation, Thing):
                 args.append(param.annotation)
             elif param.annotation and issubclass(param.annotation, Collection):
-                args.append(param.annotation())
+                collection = param.annotation()
+                if collection.quickping is None:
+                    collection.load(self)
+                args.append(collection)
             elif param.default != param.empty:
                 args.append(param.default)
             elif name in context:
@@ -108,6 +111,8 @@ class QuickpingApp:
             else:
                 args.append("MISSING")
 
+        if func.__name__ == "button_1":
+            print("BUTTON 1 ARGS", args[0].__dict__)
         return args
 
     def get_entity(self, entity_id: str) -> Optional["Entity"]:
