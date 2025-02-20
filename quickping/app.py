@@ -60,6 +60,8 @@ class QuickpingApp:
             if hasattr(thing, "load"):
                 thing.load(self)
 
+        self.load_listeners()
+
     def load_listeners(self) -> None:
         self.load_idle_listeners()
         self.load_change_listeners()
@@ -111,8 +113,6 @@ class QuickpingApp:
             else:
                 args.append("MISSING")
 
-        if func.__name__ == "button_1":
-            print("BUTTON 1 ARGS", args[0].__dict__)
         return args
 
     def get_entity(self, entity_id: str) -> Optional["Entity"]:

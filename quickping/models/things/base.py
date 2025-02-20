@@ -34,9 +34,15 @@ class Base:
                         value_type=value_type,
                     )
                 setattr(self, name, value(**kwargs))
-            elif value.__origin__ == Attribute:
+            elif hasattr(value, "__origin__") and hasattr(value, "__metadata__"):
+                # TODO: THIS CLAUSE IS A HACK, we should be
                 entity = quickping.get_entity(self.id) if quickping else None
-                setattr(self, name, Attribute(value.__metadata__[0], entity=entity))
+                setattr(
+                    self, name, value.__origin__(value.__metadata__[0], entity=entity)
+                )
+
+            elif not hasattr(self, name):
+                setattr(self, name, None)
 
         if quickping:
             self.on_load()
@@ -46,7 +52,7 @@ class Base:
 
         for name, _value in self.__annotations__.items():
             attr = getattr(self, name)
-            if hasattr(attr, "entity") and attr.entity is not None:
+            if hasattr(attr, "entity") and attr.entity is None:
                 attr.entity = qp.get_entity(self.id)
 
         return self.on_load()

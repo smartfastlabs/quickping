@@ -3,28 +3,14 @@ from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 from quickping.models.comparer import CallableComparer
 from quickping.models.singletons import SingletonPerId
+from quickping.utils.meta import AttributesMeta
 
-from .attribute import Attribute
 from .base import Base
 
 if TYPE_CHECKING:
     from appdaemon.entity import Entity  # type: ignore
 
     from quickping.app import QuickpingApp
-
-
-class AttributesMeta(type):
-    def __getattr__(cls, name: str) -> Any | None:
-        if name in cls.__annotations__:
-            anno = cls.__annotations__[name]
-            if not hasattr(anno, "__origin__"):
-                return anno()
-            elif issubclass(anno.__origin__, Thing | Attribute):
-                if isinstance(anno.__metadata__[0], str):
-                    return anno.__origin__(anno.__metadata__[0])
-                return anno.__metadata__[0]
-
-        raise AttributeError(f"{cls.__name__} has no attribute {name}")
 
 
 class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
@@ -104,7 +90,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
     def listen_state(self, func: Callable) -> None:
         if self.entity:
-            self.entity.listen_state(func, self.entity)
+            self.entity.listen_state(func)
         else:
             raise ValueError("Entity not set on Thing")
 

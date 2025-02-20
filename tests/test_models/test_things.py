@@ -22,3 +22,7 @@ def test_attributes(TestComplexThing, test_quickping):
     thing = TestComplexThing("thing.complex")
     thing.load(test_quickping)
     assert isinstance(thing.attributes.temperature == 10, Comparer)
+
+
+def test_default_value(TestCollection):
+    assert TestCollection.light == TestCollection.other_light

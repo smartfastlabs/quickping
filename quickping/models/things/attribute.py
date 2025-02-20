@@ -1,10 +1,11 @@
 from typing import Any
 
 from quickping.models.comparer import CallableComparer
+from quickping.utils.meta import AttributesMeta
 
 
 class Attribute:
-    parent: Any
+    entity: Any
     name: str
     value_type: type | None = None
 
@@ -20,10 +21,10 @@ class Attribute:
 
     @property
     def value(self) -> Any:
-        if self.parent is None:
+        if self.entity is None:
             return
-        if hasattr(self.parent, "attributes"):
-            return getattr(self.parent.attributes, self.name)
+        if hasattr(self.entity, "attributes"):
+            return getattr(self.entity.attributes, self.name)
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
         return CallableComparer(lambda: self.value == other)
@@ -39,18 +40,6 @@ class Attribute:
 
     def __ge__(self, other: Any) -> CallableComparer:
         return CallableComparer(lambda: self.value >= other)
-
-
-class AttributesMeta(type):
-    def __getattr__(cls, name: str) -> Any | None:
-        if name in cls.__annotations__:
-            anno = cls.__annotations__[name]
-            if issubclass(anno.__origin__, Attribute):
-                if isinstance(anno.__metadata__[0], str):
-                    return anno.__origin__(anno.__metadata__[0])
-                return anno.__metadata__[0]
-
-        raise AttributeError(f"{cls.__name__}  dsafhas no attribute {name}")
 
 
 class Attributes(metaclass=AttributesMeta):

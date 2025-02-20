@@ -50,17 +50,19 @@ class Collection(Thing):
             raise ValueError("QuickpingApp not set on Collection")
 
         for key, anno in self.__annotations__.items():
-            thing: Thing
+            thing: Thing | None = None
             if not hasattr(anno, "__origin__"):
-                thing = anno()
+                if not getattr(self, key):
+                    setattr(self, key, anno)
             elif issubclass(anno.__origin__, Thing):
                 if isinstance(anno.__metadata__[0], str):
                     thing = anno.__origin__(anno.__metadata__[0])
                 else:
                     thing = anno.__metadata__[0]
 
-            setattr(self, key, thing)
-            self.things[key] = thing
+            if thing is not None:
+                setattr(self, key, thing)
+                self.things[key] = thing
 
         self.things = {}
         for _key, value in self.__dict__.items():

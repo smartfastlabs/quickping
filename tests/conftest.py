@@ -42,6 +42,7 @@ def test_light(test_light_entity):
 def TestCollection(test_light):
     class Inner(Collection):
         light: Annotated[Device, test_light.id]
+        other_light: Device = test_light
 
     return Inner
 
