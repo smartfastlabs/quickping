@@ -86,7 +86,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
             return True
 
-        return CallableComparer(check)
+        return CallableComparer(check, things=[self])
 
     def listen_state(self, func: Callable) -> None:
         if self.entity:

@@ -58,6 +58,7 @@ def TestCollectionTwo(
         light: Annotated[Device, "light.other"]
 
     class Inner(Collection):
+        # TODO: HANDLE IN METACLASS AT CREATION NOT AT __getatrribute__
         light: Annotated[Device, test_collection.light]
         light_2: Annotated[Device, TestCollection.light]
         light_3: Annotated[Device, "light.test_light"]

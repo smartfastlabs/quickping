@@ -119,6 +119,7 @@ class QuickpingApp:
         if not self.app_daemon:
             return None
 
+        print("GETTING ENTITY", entity_id, type(entity_id))
         return self.app_daemon.get_entity(entity_id)
 
     def get_thing(self, thing_id: str) -> Thing | None:

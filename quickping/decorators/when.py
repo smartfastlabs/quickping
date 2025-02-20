@@ -1,17 +1,20 @@
 from collections.abc import Callable
 
+from quickping import listeners
 from quickping.models import Comparer
 
 
 def when(comparer: Comparer) -> Callable:
-    print("123 when comparer", comparer)
+    def decorator(
+        func: Callable | listeners.ChangeListener,
+    ) -> listeners.ChangeListener:
+        if isinstance(func, listeners.ChangeListener):
+            return func.add_when(comparer)
 
-    def decorator(func: Callable) -> Callable:
-        if hasattr(func, "whens"):
-            func.whens.append(comparer)
-
-        else:
-            func.whens = [comparer]  # type: ignore
-        return func
+        return listeners.ChangeListener(
+            name=f"{func.__module__}.{func.__name__}",
+            func=func,
+            whens=[comparer],
+        )
 
     return decorator

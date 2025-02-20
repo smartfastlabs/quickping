@@ -31,15 +31,35 @@ class Base:
                     kwargs[attr_name] = Attribute(
                         name,
                         entity=quickping.get_entity(self.id) if quickping else None,
+                        thing=self,  # type: ignore
                         value_type=value_type,
                     )
                 setattr(self, name, value(**kwargs))
             elif hasattr(value, "__origin__") and hasattr(value, "__metadata__"):
                 # TODO: THIS CLAUSE IS A HACK, we should be
+                # I KNOW for sure this can be an Attribute
                 entity = quickping.get_entity(self.id) if quickping else None
-                setattr(
-                    self, name, value.__origin__(value.__metadata__[0], entity=entity)
-                )
+                if issubclass(value.__origin__, Attribute):
+                    setattr(
+                        self,
+                        name,
+                        value.__origin__(
+                            name,
+                            entity=entity,
+                            thing=self,
+                            value_type=value.__metadata__[0],
+                        ),
+                    )
+                else:
+                    setattr(
+                        self,
+                        name,
+                        value.__origin__(
+                            value.__metadata__[0],
+                            entity=entity,
+                            quickping=quickping,
+                        ),
+                    )
 
             elif not hasattr(self, name):
                 setattr(self, name, None)

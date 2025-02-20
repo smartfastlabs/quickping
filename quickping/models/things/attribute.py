@@ -1,11 +1,15 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from quickping.models.comparer import CallableComparer
 from quickping.utils.meta import AttributesMeta
 
+if TYPE_CHECKING:
+    from quickping.models.things.thing import Thing
+
 
 class Attribute:
     entity: Any
+    thing: "Thing"
     name: str
     value_type: type | None = None
 
@@ -13,11 +17,14 @@ class Attribute:
         self,
         name: str,
         entity: Any = None,
+        thing: Optional["Thing"] = None,
         value_type: type | None = None,
     ):
         self.value_type = value_type
         self.entity = entity
         self.name = name
+        if thing:
+            self.thing = thing
 
     @property
     def value(self) -> Any:
@@ -27,19 +34,34 @@ class Attribute:
             return getattr(self.entity.attributes, self.name)
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
-        return CallableComparer(lambda: self.value == other)
+        return CallableComparer(
+            lambda: self.value == other,
+            things=[self.thing],
+        )
 
     def __lt__(self, other: Any) -> CallableComparer:
-        return CallableComparer(lambda: self.value < other)
+        return CallableComparer(
+            lambda: self.value < other,
+            things=[self.thing],
+        )
 
     def __le__(self, other: Any) -> CallableComparer:
-        return CallableComparer(lambda: self.value <= other)
+        return CallableComparer(
+            lambda: self.value <= other,
+            things=[self.thing],
+        )
 
     def __gt__(self, other: Any) -> CallableComparer:
-        return CallableComparer(lambda: self.value > other)
+        return CallableComparer(
+            lambda: self.value > other,
+            things=[self.thing],
+        )
 
     def __ge__(self, other: Any) -> CallableComparer:
-        return CallableComparer(lambda: self.value >= other)
+        return CallableComparer(
+            lambda: self.value >= other,
+            things=[self.thing],
+        )
 
 
 class Attributes(metaclass=AttributesMeta):

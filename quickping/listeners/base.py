@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from quickping.models import Comparer, Thing
@@ -16,22 +16,47 @@ class BaseListener:
     whens: list["Comparer"]
     things: list["Thing"]
 
-    def __init__(self, name: str, func: Callable, **kwargs: Any):
+    def __init__(
+        self,
+        name: str,
+        func: Callable,
+        things: list["Thing"] | None = None,
+        whens: list["Comparer"] | None = None,
+        **kwargs: Any,
+    ):
         self.name = name
         self.func = func
-        self.whens = []
-        self.things = []
+        self.whens = whens or []
+        self.things = things or []
+
         if hasattr(func, "disabled"):
             self.disabled = func.disabled
-        if hasattr(func, "whens"):
-            self.whens = func.whens
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         if self.__class__.instances is DEFAULT_LISTENERS:
             self.__class__.instances = []
 
+        if whens:
+            self.update_things()
+
         self.instances.append(self)
+
+    def update_things(self) -> None:
+        things: dict[str, "Thing"] = {}
+        for when in self.whens:
+            print("HERE", when)
+            for thing in when.things:
+                print(thing.id, thing)
+                things[thing.id] = thing
+
+        self.things = list(things.values())
+
+    def add_when(self, when: "Comparer") -> Self:
+        self.whens.append(when)
+        self.update_things()
+        return self
 
     @classmethod
     def clear(cls) -> None:

@@ -1,3 +1,5 @@
  * Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
  * whens should add listeners
- 
+    * First consolidate all listener logic
+* Change all magic to class creation time instead of __getattribute__ voodoo. 
+* Add FauxThing
