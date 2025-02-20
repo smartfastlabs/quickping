@@ -19,15 +19,8 @@ class Base:
         self.id = _id
         self.quickping = quickping
 
-    def load(self, qp: "QuickpingApp") -> "Base":
-        self.quickping = qp
-        result = self.on_load()
-
         for name, value in self.__annotations__.items():
-            if value == Attribute:
-                getattr(self, name).entity = qp.get_entity(self.id)
-
-            elif isclass(value) and issubclass(value, Attributes):
+            if isclass(value) and issubclass(value, Attributes):
                 kwargs: dict[str, Attribute] = {}
 
                 for attr_name, attr_anno in value.__annotations__.items():
@@ -37,12 +30,26 @@ class Base:
 
                     kwargs[attr_name] = Attribute(
                         name,
-                        entity=qp.get_entity(self.id),
+                        entity=quickping.get_entity(self.id) if quickping else None,
                         value_type=value_type,
                     )
                 setattr(self, name, value(**kwargs))
+            elif value.__origin__ == Attribute:
+                entity = quickping.get_entity(self.id) if quickping else None
+                setattr(self, name, Attribute(value.__metadata__[0], entity=entity))
 
-        return result
+        if quickping:
+            self.on_load()
+
+    def load(self, qp: "QuickpingApp") -> "Base":
+        self.quickping = qp
+
+        for name, _value in self.__annotations__.items():
+            attr = getattr(self, name)
+            if hasattr(attr, "entity") and attr.entity is not None:
+                attr.entity = qp.get_entity(self.id)
+
+        return self.on_load()
 
     def on_load(self) -> "Base":
         return self

@@ -1,5 +1,4 @@
  * Get Attribute updating to work
  * Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
  * Consolidate to one metaclass
- * get @quickping.when(Environment.weather.temperature < 40) working
  * whens should add listeners
