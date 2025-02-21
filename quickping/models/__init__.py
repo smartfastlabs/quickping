@@ -10,5 +10,6 @@ from .things import (
     Attributes as Attributes,
     Collection as Collection,
     Device as Device,
+    FauxThing as FauxThing,
     Thing as Thing,
 )
