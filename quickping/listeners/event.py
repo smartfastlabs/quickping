@@ -1,5 +1,6 @@
-from collections.abc import Callable
 from typing import Any
+
+from quickping.models import Event
 
 from .base import BaseListener
 
@@ -7,30 +8,25 @@ from .base import BaseListener
 class EventListener(BaseListener):
     entity_filters: dict[str, Any]
     event_filter: str
-    filter: Callable[[str, dict[str, Any]], bool] | None = None
 
-    def wants_event(self, event: str, entity: dict) -> bool:
+    def wants_event(self, event: Event) -> bool:
         if not self.is_active():
             return False
 
-        if self.event_filter and event != self.event_filter:
+        if self.event_filter and event.name != self.event_filter:
             return False
-
-        if self.filter:
-            if self.filter(event, entity):
-                return True
 
         elif not self.entity_filters:
             return True
 
         for key, value in self.entity_filters.items():
-            if key not in entity:
+            if key not in event.data:
                 return False
 
-            if callable(value) and not value(entity[key]):
+            if callable(value) and not value(event.data[key]):
                 return False
 
-            if entity[key] != value:
+            if event.data[key] != value:
                 return False
 
         return True

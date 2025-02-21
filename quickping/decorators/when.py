@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from quickping import listeners
-from quickping.models import Comparer
+from quickping.utils.comparer import Comparer
 
 
 def when(*comparers: Comparer) -> Callable:

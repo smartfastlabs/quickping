@@ -2,6 +2,7 @@ from typing import Any
 
 import appdaemon.plugins.hass.hassapi as hass  # type: ignore
 
+from quickping import Event
 from quickping.app import QuickpingApp
 
 
@@ -25,14 +26,14 @@ class AppDaemonApp(hass.Hass):
                 await listener.func(*self.quickping.build_args(listener.func))
 
     async def on_event(
-        self, event: str, entity: dict, *args: tuple[Any], **kwargs: dict[str, Any]
+        self,
+        name: str,
+        data: dict,
+        *args: tuple[Any],
+        **kwargs: dict[str, Any],
     ) -> None:
-        for listener in self.quickping.event_listeners:
-            if listener.wants_event(event, entity):
-                await listener.func(
-                    *self.quickping.build_args(
-                        listener.func,
-                        event=event,
-                        entity=entity,
-                    )
-                )
+        event: Event = Event(
+            name=name,
+            data=data,
+        )
+        await self.quickping.on_event(event)

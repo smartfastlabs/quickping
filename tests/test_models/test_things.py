@@ -1,4 +1,4 @@
-from quickping.models.comparer import Comparer
+from quickping.utils.comparer import Comparer
 
 
 def test_is(test_light):

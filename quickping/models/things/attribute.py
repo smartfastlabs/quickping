@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Optional
 
-from quickping.models.comparer import CallableComparer
+from quickping.utils.comparer import CallableComparer
 from quickping.utils.meta import AttributesMeta
 
 if TYPE_CHECKING:

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Callable
 from inspect import isclass
 from typing import TYPE_CHECKING, Any, Optional
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 
 import inspect
 
-from .models import Collection, Thing
+from .models import Change, Collection, Event, Thing
 from .utils.importer import load_directory
 
 
@@ -89,6 +90,27 @@ class QuickpingApp:
                         listener.name,
                     ),
                 )
+
+    async def on_change(self, change: Change) -> None:
+        for listener in self.change_listeners:
+            if listener.is_active():
+                await listener.func(*self.build_args(listener.func, change=change))
+
+    async def on_event(self, event: Event) -> None:
+        futures = []
+        for listener in self.event_listeners:
+            if listener.wants_event(event):
+                futures.append(
+                    listener.func(
+                        *self.build_args(
+                            listener.func,
+                            event=event.name,
+                            entity=event.data,
+                        ),
+                    ),
+                )
+
+        await asyncio.gather(*futures)
 
     def load_http_listeners(self) -> None:
         for listener in self.http_listeners:

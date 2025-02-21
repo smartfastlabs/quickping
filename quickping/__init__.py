@@ -15,6 +15,7 @@ from .models import (
     Change as Change,
     Collection as Collection,
     Device as Device,
+    Event as Event,
     FauxThing as FauxThing,
     Thing as Thing,
 )

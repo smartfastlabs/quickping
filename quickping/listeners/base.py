@@ -2,7 +2,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
-    from quickping.models import Comparer, Thing
+    from quickping.models import Thing
+    from quickping.utils.comparer import Comparer
 
 DEFAULT_LISTENERS: list["BaseListener"] = []
 
