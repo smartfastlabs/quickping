@@ -46,7 +46,6 @@ class BaseListener:
     def update_things(self) -> None:
         things: dict[str, "Thing"] = {}
         for when in self.whens:
-            print("HERE", when)
             for thing in when.things:
                 print(thing.id, thing)
                 things[thing.id] = thing

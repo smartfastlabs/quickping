@@ -6,6 +6,9 @@ class SingletonPerId:
     instances: dict[str, "SingletonPerId"]
 
     def __new__(cls, id: str, *args, **kwargs) -> "SingletonPerId":  # type: ignore
+        if not isinstance(id, str):
+            raise ValueError("id must be a string")
+
         if getattr(cls, "instances", None) is None:
             cls.instances = {}
 

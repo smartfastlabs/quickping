@@ -1,6 +1,6 @@
 * Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
 * consolidate all listener logic
-* Change all magic to class creation time instead of __getattribute__ voodoo. 
-    * So we can't do this 100%, because these get created before quickping exists
-    * BUT WE should be able to create the thigns 
-* Add FauxThing
+    * Normalize appdaemon evens before sending upstream
+* Figure out the Callables.things Callable issue.
+    - It should either always be a callable or never, the current setup smalls awful
+* get the on_schedule decorator working

@@ -50,7 +50,9 @@ class Base:
                             value_type=value.__metadata__[0],
                         ),
                     )
-                else:
+                elif isinstance(value.__metadata__[0], value.__origin__):
+                    setattr(self, name, value.__metadata__[0])
+                elif isclass(value.__origin__):
                     setattr(
                         self,
                         name,

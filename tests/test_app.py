@@ -15,6 +15,7 @@ def test_build_args_collection(test_quickping, test_light, TestCollectionTwo):
         collection: TestCollectionTwo,
         other_collection: TestCollectionTwo = TestCollectionTwo,
         second_light=TestCollectionTwo.light_2,
+        third_light=TestCollectionTwo.light_3,
         light: Device = TestCollectionTwo.light,
     ) -> None:
         assert collection is other_collection
@@ -23,5 +24,6 @@ def test_build_args_collection(test_quickping, test_light, TestCollectionTwo):
         assert light == test_light
         assert quickping == test_quickping
         assert second_light == test_light
+        assert third_light is test_light
 
     dummy_func(*test_quickping.build_args(dummy_func))

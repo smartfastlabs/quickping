@@ -42,7 +42,6 @@ class CallableComparer(Comparer):
         self.func = func
 
     def __bool__(self) -> bool:
-        print(self.__dict__, "__bool__")
         return bool(self.func())
 
 
