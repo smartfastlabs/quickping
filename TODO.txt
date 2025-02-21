@@ -1,5 +1,6 @@
- * Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
- * whens should add listeners
-    * First consolidate all listener logic
+* Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
+* consolidate all listener logic
 * Change all magic to class creation time instead of __getattribute__ voodoo. 
+    * So we can't do this 100%, because these get created before quickping exists
+    * BUT WE should be able to create the thigns 
 * Add FauxThing

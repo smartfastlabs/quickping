@@ -3,20 +3,6 @@ from typing import Any, Optional
 from .thing import Thing
 
 
-class CollectionMeta(type):
-    def __getattr__(cls, name: str) -> Any | None:
-        if name in cls.__annotations__:
-            anno = cls.__annotations__[name]
-            if not hasattr(anno, "__origin__"):
-                return anno()
-            elif issubclass(anno.__origin__, Thing):
-                if isinstance(anno.__metadata__[0], str):
-                    return anno.__origin__(anno.__metadata__[0])
-                return anno.__metadata__[0]
-
-        raise AttributeError(f"{cls.__name__} has no attribute {name}")
-
-
 class Collection(Thing):
     things: dict[str, Thing]
     instance: Optional["Collection"] = None

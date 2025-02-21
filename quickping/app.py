@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from inspect import isclass
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
@@ -97,15 +98,21 @@ class QuickpingApp:
         sig = inspect.signature(func)
         args: list[Any] = []
         for name, param in sig.parameters.items():
-            if isinstance(param.annotation, Thing):
+            if param.default != param.empty:
+                if isclass(param.default) and issubclass(param.default, Collection):
+                    collection = param.default()
+                    if collection.quickping is None:
+                        collection.load(self)
+                    args.append(collection)
+                else:
+                    args.append(param.default)
+            elif isinstance(param.annotation, Thing):
                 args.append(param.annotation)
-            elif param.annotation and issubclass(param.annotation, Collection):
+            elif isclass(param.annotation) and issubclass(param.annotation, Collection):
                 collection = param.annotation()
                 if collection.quickping is None:
                     collection.load(self)
                 args.append(collection)
-            elif param.default != param.empty:
-                args.append(param.default)
             elif name in context:
                 args.append(context[name])
             elif name == "quickping":

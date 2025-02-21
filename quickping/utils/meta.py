@@ -1,16 +1,20 @@
 from inspect import isclass
-from typing import Any
 
 
 class AttributesMeta(type):
-    def __getattr__(cls, name: str) -> Any | None:
-        if name in cls.__annotations__:
-            anno = cls.__annotations__[name]
-            if not hasattr(anno, "__origin__"):
-                return anno()
-            elif isclass(anno.__origin__):
-                if isinstance(anno.__metadata__[0], str):
-                    return anno.__origin__(anno.__metadata__[0])
-                return anno.__metadata__[0]
+    def __new__(cls, name, bases, attrs):  # type: ignore
+        if "__annotations__" in attrs:
+            for name, anno in list(attrs["__annotations__"].items()):
+                if name in attrs:
+                    continue
+                if name == "light":
+                    print("HERE", name, anno)
+                if not hasattr(anno, "__origin__"):
+                    attrs[name] = anno()
+                elif isclass(anno.__origin__) and hasattr(anno, "__metadata__"):
+                    _id = anno.__metadata__[0]
+                    if hasattr(_id, "id"):
+                        _id = _id.id
+                    attrs[name] = anno.__origin__(_id)
 
-        raise AttributeError(f"{cls.__name__} has no attribute {name}")
+        return super().__new__(cls, name, bases, attrs)

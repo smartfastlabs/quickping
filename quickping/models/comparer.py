@@ -8,20 +8,21 @@ if TYPE_CHECKING:
 
 class Comparer:
     comparers: list["Comparer"]
-    _things: list["Thing"]
+    _things: list["Thing"] | Callable
 
     def __init__(
         self,
         comparers: list["Comparer"] | None = None,
-        things: list["Thing"] | None = None,
+        things: list["Thing"] | None | Callable = None,
     ):
         self.comparers = comparers or []
         self._things = things or []
 
     @property
     def things(self) -> list["Thing"]:
-        result: dict[str, "Thing"] = {t.id: t for t in self._things}
-        for comparer in self.comparers:
+        things = self._things() if callable(self._things) else self._things
+        result: dict[str, "Thing"] = {t.id: t for t in things}
+        for comparer in self.comparers or []:
             for thing in comparer.things:
                 result[thing.id] = thing
         return list(result.values())
@@ -36,7 +37,7 @@ class Comparer:
 class CallableComparer(Comparer):
     func: Callable
 
-    def __init__(self, func: Callable, things: list["Thing"] | None = None):
+    def __init__(self, func: Callable, things: list["Thing"] | None | Callable = None):
         super().__init__(things=things)
         self.func = func
 

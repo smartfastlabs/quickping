@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from .attribute import Attribute, Attributes
 
 if TYPE_CHECKING:
-    from quickping.app import QuickpingApp
+    from quickping.app import QuickpingApp, Thing
 
 
 class Base:
@@ -34,7 +34,7 @@ class Base:
                         thing=self,  # type: ignore
                         value_type=value_type,
                     )
-                setattr(self, name, value(**kwargs))
+                setattr(self, name, value(thing=self, **kwargs))  # type: ignore
             elif hasattr(value, "__origin__") and hasattr(value, "__metadata__"):
                 # TODO: THIS CLAUSE IS A HACK, we should be
                 # I KNOW for sure this can be an Attribute
@@ -67,13 +67,15 @@ class Base:
         if quickping:
             self.on_load()
 
-    def load(self, qp: "QuickpingApp") -> "Base":
+    def load(self, qp: "QuickpingApp", thing: Optional["Thing"] = None) -> "Base":
         self.quickping = qp
 
         for name, _value in self.__annotations__.items():
             attr = getattr(self, name)
             if hasattr(attr, "entity") and attr.entity is None:
                 attr.entity = qp.get_entity(self.id)
+            if hasattr(attr, "load"):
+                attr.load(qp, thing=self)
 
         return self.on_load()
 
