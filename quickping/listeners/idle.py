@@ -1,8 +1,9 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 
-from quickping.models import Thing
+from quickping.models import Change, Thing
 
 from .base import BaseListener
 
@@ -26,10 +27,13 @@ class IdleListener(BaseListener):
 
     async def on_change(
         self,
-        entity_id: str,
-        attribute: str,
-        old: str,
-        new: str,
-        kwargs: dict,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         self.last_run = datetime.now()
+
+    def change_applies(self, change: Change) -> bool:
+        if not self.is_active():
+            return False
+
+        return any(thing.id == change.thing_id for thing in self.things)

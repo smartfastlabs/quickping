@@ -72,29 +72,33 @@ class QuickpingApp:
     def load_idle_listeners(self) -> None:
         for listener in self.idle_listeners:
             listener.quickping = self
-            for thing in listener.things:
-                thing.listen_state(
-                    wrap(
-                        listener.on_change,
-                        listener.name,
-                    ),
-                )
+            if self.app_daemon:
+                self.app_daemon.track(*listener.things)
 
     def load_change_listeners(self) -> None:
         for listener in self.change_listeners:
             listener.quickping = self
-            for thing in listener.things:
-                thing.listen_state(
-                    wrap(
-                        listener.on_change,
-                        listener.name,
-                    ),
-                )
+            if self.app_daemon:
+                self.app_daemon.track(*listener.things)
 
     async def on_change(self, change: Change) -> None:
+        futures = []
         for listener in self.change_listeners:
-            if listener.is_active():
-                await listener.func(*self.build_args(listener.func, change=change))
+            if listener.wants_change(change):
+                futures.append(
+                    listener.func(
+                        *self.build_args(
+                            listener.func,
+                            change=change,
+                        )
+                    )
+                )
+
+        for idle_listener in self.idle_listeners:
+            if idle_listener.change_applies(change):
+                futures.append(idle_listener.on_change())
+
+        await asyncio.gather(*futures)
 
     async def on_event(self, event: Event) -> None:
         futures = []
@@ -104,8 +108,7 @@ class QuickpingApp:
                     listener.func(
                         *self.build_args(
                             listener.func,
-                            event=event.name,
-                            entity=event.data,
+                            event=event,
                         ),
                     ),
                 )

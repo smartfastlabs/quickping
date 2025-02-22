@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from .attribute import Attribute, Attributes
 
 if TYPE_CHECKING:
-    from quickping.app import QuickpingApp, Thing
+    from quickping.app import QuickpingApp
 
 
 class Base:
@@ -69,7 +69,7 @@ class Base:
         if quickping:
             self.on_load()
 
-    def load(self, qp: "QuickpingApp", thing: Optional["Thing"] = None) -> "Base":
+    def load(self, qp: "QuickpingApp") -> "Base":
         self.quickping = qp
 
         for name, _value in self.__annotations__.items():
@@ -77,7 +77,7 @@ class Base:
             if hasattr(attr, "entity") and attr.entity is None:
                 attr.entity = qp.get_entity(self.id)
             if hasattr(attr, "load"):
-                attr.load(qp, thing=self)
+                attr.load(qp)
 
         return self.on_load()
 
