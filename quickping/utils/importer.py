@@ -53,3 +53,13 @@ def load_file(module_name: str, path: str) -> Any:
     module = importlib.util.module_from_spec(spec)  # type: ignore
     spec.loader.exec_module(module)
     return module
+
+
+def get_all_subclasses(cls):
+    all_subclasses = []
+
+    for subclass in cls.__subclasses__():
+        all_subclasses.append(subclass)
+        all_subclasses.extend(get_all_subclasses(subclass))
+
+    return all_subclasses

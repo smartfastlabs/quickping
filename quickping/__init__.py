@@ -13,6 +13,7 @@ from .models import (
     Attribute as Attribute,
     Attributes as Attributes,
     Change as Change,
+    Clock as Clock,
     Collection as Collection,
     Device as Device,
     Event as Event,

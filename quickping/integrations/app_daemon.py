@@ -17,15 +17,7 @@ class AppDaemonApp(hass.Hass):
             app_daemon=self,
         )
         self.quickping.load_handlers()
-
         self.listen_event(self.on_event)
-        self.run_every(self.sweep_idle, "now", 5)
-
-    # TODO: These should all just normalizes the args and call the quickping app
-    async def sweep_idle(self, *args: tuple[Any], **kwargs: dict[str, Any]) -> None:
-        for listener in self.quickping.idle_listeners:
-            if listener.is_active() and listener.is_idle():
-                await listener.func(*self.quickping.build_args(listener.func))
 
     async def on_event(
         self,
@@ -47,6 +39,9 @@ class AppDaemonApp(hass.Hass):
 
             if not thing.quickping:
                 thing.load(self.quickping)
+
+            if not hasattr(thing, "entity"):
+                continue
 
             self.tracked[thing.id] = thing
             if thing.entity:

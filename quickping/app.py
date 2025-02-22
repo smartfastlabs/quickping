@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 
 import inspect
 
-from .models import Change, Collection, Event, Thing
-from .utils.importer import load_directory
+from .models import Change, Collection, Event, FauxThing, Thing
+from .utils.importer import get_all_subclasses, load_directory
 
 
 def wrap(func: Callable, name: str) -> Callable:
@@ -32,6 +32,7 @@ class QuickpingApp:
     event_listeners: list["EventListener"]
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
+    faux_things: list[FauxThing]
     handler_path: str
     app_daemon: Optional["Hass"]
 
@@ -49,6 +50,7 @@ class QuickpingApp:
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
         self.handler_path = handler_path
+        self.faux_things = []
         self.app_daemon = app_daemon
 
     def load_handlers(self) -> None:
@@ -68,6 +70,14 @@ class QuickpingApp:
         self.load_idle_listeners()
         self.load_change_listeners()
         self.load_http_listeners()
+        self.load_faux_things()
+
+    def load_faux_things(self) -> None:
+        self.faux_things = get_all_subclasses(FauxThing)
+        print("LOADING FAUX THINGS")
+        for thing in self.faux_things:
+            print("LOADING", thing)
+            thing().start(self)
 
     def load_idle_listeners(self) -> None:
         for listener in self.idle_listeners:
@@ -83,6 +93,7 @@ class QuickpingApp:
 
     async def on_change(self, change: Change) -> None:
         futures = []
+        print(change)
         for listener in self.change_listeners:
             if listener.wants_change(change):
                 futures.append(
@@ -124,7 +135,10 @@ class QuickpingApp:
         args: list[Any] = []
         for name, param in sig.parameters.items():
             if param.default != param.empty:
-                if isclass(param.default) and issubclass(param.default, Collection):
+                if isclass(param.default) and issubclass(
+                    param.default,
+                    Collection,
+                ):
                     collection = param.default()
                     if collection.quickping is None:
                         collection.load(self)
@@ -133,7 +147,10 @@ class QuickpingApp:
                     args.append(param.default)
             elif isinstance(param.annotation, Thing):
                 args.append(param.annotation)
-            elif isclass(param.annotation) and issubclass(param.annotation, Collection):
+            elif isclass(param.annotation) and issubclass(
+                param.annotation,
+                Collection,
+            ):
                 collection = param.annotation()
                 if collection.quickping is None:
                     collection.load(self)
