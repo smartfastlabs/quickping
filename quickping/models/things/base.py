@@ -77,7 +77,10 @@ class Base:
             if hasattr(attr, "entity") and attr.entity is None:
                 attr.entity = qp.get_entity(self.id)
             if hasattr(attr, "load"):
-                attr.load(qp)
+                if isinstance(attr, Attributes):
+                    attr.load(qp, thing=self)  # type: ignore
+                else:
+                    attr.load(qp)
 
         return self.on_load()
 

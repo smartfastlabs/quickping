@@ -12,7 +12,7 @@ class Clock(FauxThing):
     id: str = "clock"
     _instance: Optional["Clock"] = None
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls) -> "Clock":
         if cls._instance is not None:
             return cls._instance
 
@@ -20,7 +20,6 @@ class Clock(FauxThing):
         return cls._instance
 
     async def run(self) -> None:
-        return
         old_time = datetime.now().time()
         while True:
             try:
@@ -35,20 +34,21 @@ class Clock(FauxThing):
         if old_time.second == new_time.second:
             return old_time
 
-        await self.quickping.on_change(
-            Change(
-                thing_id=self.id,
-                old=time,
-                new=new_time,
-                attribute="time",
+        if self.quickping:
+            await self.quickping.on_change(
+                Change(
+                    thing_id=self.id,
+                    old=time,
+                    new=new_time,
+                    attribute="time",
+                )
             )
-        )
         return new_time
 
     @classmethod
     def things(cls) -> list["Clock"]:
         if not cls._instance:
-            cls._instance = cls("clock")
+            cls._instance = cls()
         return [cls._instance]
 
     @classmethod
@@ -58,22 +58,17 @@ class Clock(FauxThing):
         pm: int | None = None,
         minute: int | None = None,
     ) -> "CallableComparer":
+        if am is None and pm is None:
+            raise ValueError("Must provide either am or pm")
         # TODO HOW DO WE GET SELF HERE?
         t = time(
-            hour=am if am is not None else pm + 12,
+            hour=am if am is not None else pm + 12,  # type: ignore
             minute=minute or 0,
         )
 
-        def wrapper():
-            {
-                "last_time": datetime.now().time(),
-            }
-
-            def inner() -> bool:
-                return datetime.now().time() < t
-
         return CallableComparer(
             lambda: datetime.now().time() < t,
+            # TODO: I think this could be things=[cls()]
             things=cls.things,
         )
 

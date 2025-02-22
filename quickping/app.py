@@ -20,6 +20,7 @@ from .utils.importer import get_all_subclasses, load_directory
 
 
 def wrap(func: Callable, name: str) -> Callable:
+    # TODO Figure out why this is needed
     async def wrapped(*args: Any, **kwargs: Any) -> Any:
         return await func(*args, **kwargs)
 
@@ -32,7 +33,7 @@ class QuickpingApp:
     event_listeners: list["EventListener"]
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
-    faux_things: list[FauxThing]
+    faux_things: list[type]
     handler_path: str
     app_daemon: Optional["Hass"]
 
@@ -64,36 +65,20 @@ class QuickpingApp:
             if hasattr(thing, "load"):
                 thing.load(self)
 
-        self.load_listeners()
+        for listener in self.idle_listeners + self.change_listeners:
+            listener.quickping = self
+            if self.app_daemon:
+                self.app_daemon.track(*listener.things)
 
-    def load_listeners(self) -> None:
-        self.load_idle_listeners()
-        self.load_change_listeners()
-        self.load_http_listeners()
-        self.load_faux_things()
+        for http_listener in self.http_listeners:
+            http_listener.quickping = self
 
-    def load_faux_things(self) -> None:
         self.faux_things = get_all_subclasses(FauxThing)
-        print("LOADING FAUX THINGS")
-        for thing in self.faux_things:
-            print("LOADING", thing)
-            thing().start(self)
-
-    def load_idle_listeners(self) -> None:
-        for listener in self.idle_listeners:
-            listener.quickping = self
-            if self.app_daemon:
-                self.app_daemon.track(*listener.things)
-
-    def load_change_listeners(self) -> None:
-        for listener in self.change_listeners:
-            listener.quickping = self
-            if self.app_daemon:
-                self.app_daemon.track(*listener.things)
+        for faux_thing in self.faux_things:
+            faux_thing().start(self)
 
     async def on_change(self, change: Change) -> None:
         futures = []
-        print(change)
         for listener in self.change_listeners:
             if listener.wants_change(change):
                 futures.append(
@@ -125,10 +110,6 @@ class QuickpingApp:
                 )
 
         await asyncio.gather(*futures)
-
-    def load_http_listeners(self) -> None:
-        for listener in self.http_listeners:
-            listener.quickping = self
 
     def build_args(self, func: Callable, **context: Any) -> list[Any]:
         sig = inspect.signature(func)

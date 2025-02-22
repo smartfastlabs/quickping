@@ -16,7 +16,6 @@ class FauxThing:
         """Run the faux thing."""
         self.quickping = quickping
 
-        return
         if hasattr(self, "run"):
             self.task = asyncio.create_task(self.run())
 

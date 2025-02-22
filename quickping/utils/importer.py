@@ -55,8 +55,8 @@ def load_file(module_name: str, path: str) -> Any:
     return module
 
 
-def get_all_subclasses(cls):
-    all_subclasses = []
+def get_all_subclasses(cls: type) -> list[type]:
+    all_subclasses: list[type] = []
 
     for subclass in cls.__subclasses__():
         all_subclasses.append(subclass)

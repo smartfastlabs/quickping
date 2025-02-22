@@ -1,3 +1,4 @@
+import datetime
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -16,6 +17,8 @@ class BaseListener:
     disabled: bool = False
     whens: list["Comparer"]
     things: list["Thing"]
+    after_time: datetime.time | None = None
+    before_time: datetime.time | None = None
 
     def __init__(
         self,
@@ -32,6 +35,9 @@ class BaseListener:
 
         if hasattr(func, "disabled"):
             self.disabled = func.disabled
+
+        for key in ("before_time", "after_time", "disabled"):
+            setattr(self, key, getattr(func, key, None))
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -63,7 +69,21 @@ class BaseListener:
         cls.instances = DEFAULT_LISTENERS
 
     def is_active(self) -> bool:
-        return (not self.disabled) and all(self.whens)
+        if self.disabled:
+            return False
+        if (
+            self.after_time is not None
+            and datetime.datetime.now().time() < self.after_time
+        ):
+            return False
+
+        if (
+            self.before_time is not None
+            and datetime.datetime.now().time() > self.before_time
+        ):
+            return False
+
+        return all(self.whens)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.func(*args, **kwargs)
