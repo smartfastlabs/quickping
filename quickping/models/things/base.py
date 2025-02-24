@@ -1,5 +1,5 @@
 from inspect import isclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Self
 
 from .attribute import Attribute, Attributes
 
@@ -69,7 +69,7 @@ class Base:
         if quickping:
             self.on_load()
 
-    def load(self, qp: "QuickpingApp") -> "Base":
+    def load(self, qp: "QuickpingApp") -> Self:
         self.quickping = qp
 
         for name, _value in self.__annotations__.items():
@@ -84,5 +84,5 @@ class Base:
 
         return self.on_load()
 
-    def on_load(self) -> "Base":
+    def on_load(self) -> Self:
         return self

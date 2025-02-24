@@ -73,9 +73,9 @@ class QuickpingApp:
         for http_listener in self.http_listeners:
             http_listener.quickping = self
 
-        self.faux_things = get_all_subclasses(FauxThing)
+        self.faux_things: list[type[FauxThing]] = get_all_subclasses(FauxThing)
         for faux_thing in self.faux_things:
-            faux_thing().start(self)
+            faux_thing.start(self)  # type: ignore
 
     async def on_change(self, change: Change) -> None:
         futures = []

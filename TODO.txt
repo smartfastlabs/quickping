@@ -2,3 +2,4 @@
 * Figure out the Callables.things Callable issue.
     - It should either always be a callable or never, the current setup smalls awful
 * get the on_schedule decorator working
+* Finish Refactoring Comparerers

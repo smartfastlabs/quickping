@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from quickping import Thing
@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 class Comparer:
     comparers: list["Comparer"]
     _things: list["Thing"] | Callable
+    owner: Optional["Thing"]
 
     def __init__(
         self,
@@ -17,6 +18,8 @@ class Comparer:
     ):
         self.comparers = comparers or []
         self._things = things or []
+        if things and not callable(things) and len(things) == 1:
+            self.owner = things[0]
 
     @property
     def things(self) -> list["Thing"]:
@@ -32,6 +35,62 @@ class Comparer:
 
     def __or__(self, other: "Comparer") -> "OrComparer":
         return OrComparer(comparers=[self, other])
+
+    def __lt__(self, other: Any) -> "AndComparer":
+        if not self.owner:
+            raise ValueError("Cannot compare without an owner.")
+
+        return AndComparer(
+            comparers=[
+                self,
+                CallableComparer(
+                    lambda: self.owner < other,
+                    things=self.things,
+                ),
+            ]
+        )
+
+    def __gt__(self, other: Any) -> "AndComparer":
+        if not self.owner:
+            raise ValueError("Cannot compare without an owner.")
+
+        return AndComparer(
+            comparers=[
+                self,
+                CallableComparer(
+                    lambda: self.owner > other,
+                    things=self.things,
+                ),
+            ]
+        )
+
+    def __lte__(self, other: Any) -> "AndComparer":
+        if not self.owner:
+            raise ValueError("Cannot compare without an owner.")
+
+        return AndComparer(
+            comparers=[
+                self,
+                CallableComparer(
+                    lambda: self.owner <= other,
+                    things=self.things,
+                ),
+            ]
+        )
+
+    def __gte__(self, other: Any) -> "AndComparer":
+        if not self.owner:
+            raise ValueError("Cannot compare without an owner.")
+
+        return AndComparer(
+            comparers=[
+                self,
+                CallableComparer(
+                    lambda: self.owner >= other,
+                    things=self.things,
+                ),
+            ]
+        )
 
 
 class CallableComparer(Comparer):

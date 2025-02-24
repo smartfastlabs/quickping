@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
 from quickping.utils.comparer import CallableComparer
@@ -61,7 +61,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         if self.entity:
             await self.entity.toggle()
 
-    def on_load(self) -> "Thing":
+    def on_load(self) -> Self:
         if not self.quickping:
             raise ValueError("QuickpingApp not set on Thing")
 

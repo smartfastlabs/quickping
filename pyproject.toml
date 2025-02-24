@@ -25,6 +25,7 @@ pytest = "^8.2.0"
 pytest-cov = ">=4.1.0"
 pre-commit = ">=3.3.3"
 dobles = "^4.0.2"
+freezegun = "^1.5.1"
 
 [tool.black]
 line-length = 88
