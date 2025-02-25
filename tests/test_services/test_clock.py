@@ -3,7 +3,7 @@ from datetime import datetime, time
 import pytest
 from freezegun import freeze_time
 
-from quickping.models import Clock
+from quickping.services import Clock
 
 
 @pytest.mark.parametrize(

@@ -1,2 +1,4 @@
 * Support Mixing in Attributes or (subclasses with Attrs already added (e.g. Dimmer))
 * get the on_schedule decorator working
+* Clock should not be a Faux Thing.
+* Make listeners __call__able so they can be used like normal functions

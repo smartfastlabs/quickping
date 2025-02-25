@@ -1,16 +1,13 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import Any
 
 from .base import Comparer
-
-if TYPE_CHECKING:
-    from quickping import Thing
 
 
 class CallableComparer(Comparer):
     func: Callable
 
-    def __init__(self, func: Callable, things: list["Thing"] | None | Callable = None):
+    def __init__(self, func: Callable, things: list[Any] | None | Callable = None):
         super().__init__(things=things)
         self.func = func
 

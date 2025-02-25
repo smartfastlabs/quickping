@@ -3,35 +3,22 @@ import uuid
 from datetime import datetime, time
 from typing import Any
 
-from quickping.models.change import Change
+from quickping.models import Change
+from quickping.models.singletons import SingletonPerId
 from quickping.utils.clock import get_time
 from quickping.utils.comparer import CallableComparer
 
-from .faux import FauxThing
+from .base import Service
 
 
-class Clock(FauxThing):
+class Clock(SingletonPerId, Service):
     id: str = "clock"
     start_time: time | None = None
     end_time: time | None = None
     last_check: time | None = None
 
     @classmethod
-    async def run(cls) -> None:
-        last_time: time = datetime.now().time()
-        while True:
-            try:
-                new_time = datetime.now().time()
-                await cls.loop(last_time)
-                last_time = new_time
-
-            except Exception as e:
-                print("CLOCK ERROR", e)
-
-            await asyncio.sleep(15)
-
-    @classmethod
-    async def loop(cls, old_time: time) -> None:
+    async def loop(cls) -> None:
         new_time = datetime.now().time()
         if not cls.quickping:
             return
@@ -41,14 +28,18 @@ class Clock(FauxThing):
             if not isinstance(clock, Clock):
                 continue
 
-            if clock.is_triggered():
+            active: bool = clock.is_active()
+            was_active: bool = clock._is_active(
+                now=clock.last_check,
+            )
+            if active != was_active:
                 promises.append(
                     cls.quickping.on_change(
                         Change(
                             thing_id=clock.id,
-                            old=old_time,
-                            new=new_time,
-                            attribute="time",
+                            old=was_active,
+                            new=active,
+                            attribute="is_active",
                         ),
                     ),
                 )
@@ -72,7 +63,6 @@ class Clock(FauxThing):
 
     def _is_active(
         self,
-        old_time: time | None = None,
         now: time | None = None,
     ) -> bool:
         if now is None:
