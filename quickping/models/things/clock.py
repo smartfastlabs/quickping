@@ -101,13 +101,12 @@ class Clock(FauxThing):
         )
 
     def __eq__(self, other: time) -> CallableComparer:  # type: ignore
-        return self.clone(
-            start_time=other,
-            end_time=other,
-        ).comparer
+        return self.between(
+            start=other,
+            end=other,
+        )
 
     def __lt__(self, other: time) -> CallableComparer:
-        print("LT", other, id(self), self.id, self.start_time, self.end_time)
         return self.before(other)
 
     def __le__(self, other: time) -> CallableComparer:

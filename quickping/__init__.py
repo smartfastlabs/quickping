@@ -25,6 +25,8 @@ from .models import (
 )
 from .utils import importer
 
+Time = Clock("clock.default")
+
 
 def load():
     for module in [app, decorators, models, importer]:
