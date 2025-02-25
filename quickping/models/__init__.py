@@ -4,6 +4,7 @@ from .event import Event as Event
 from .things import (
     Attribute as Attribute,
     Attributes as Attributes,
+    Clock as Clock,
     Collection as Collection,
     Device as Device,
     FauxThing as FauxThing,

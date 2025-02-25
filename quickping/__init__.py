@@ -16,13 +16,13 @@ from .models import (
     Attribute as Attribute,
     Attributes as Attributes,
     Change as Change,
+    Clock as Clock,
     Collection as Collection,
     Device as Device,
     Event as Event,
     FauxThing as FauxThing,
     Thing as Thing,
 )
-from .services import Clock as Clock
 from .utils import importer
 
 Time = Clock("clock.default")

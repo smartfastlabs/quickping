@@ -3,22 +3,35 @@ import uuid
 from datetime import datetime, time
 from typing import Any
 
-from quickping.models import Change
-from quickping.models.singletons import SingletonPerId
+from quickping.models.change import Change
 from quickping.utils.clock import get_time
 from quickping.utils.comparer import CallableComparer
 
-from .base import Service
+from .faux import FauxThing
 
 
-class Clock(SingletonPerId, Service):
+class Clock(FauxThing):
     id: str = "clock"
     start_time: time | None = None
     end_time: time | None = None
     last_check: time | None = None
 
     @classmethod
-    async def loop(cls) -> None:
+    async def run(cls) -> None:
+        last_time: time = datetime.now().time()
+        while True:
+            try:
+                new_time = datetime.now().time()
+                await cls.loop(last_time)
+                last_time = new_time
+
+            except Exception as e:
+                print("CLOCK ERROR", e)
+
+            await asyncio.sleep(15)
+
+    @classmethod
+    async def loop(cls, old_time: time) -> None:
         new_time = datetime.now().time()
         if not cls.quickping:
             return
@@ -28,18 +41,14 @@ class Clock(SingletonPerId, Service):
             if not isinstance(clock, Clock):
                 continue
 
-            active: bool = clock.is_active()
-            was_active: bool = clock._is_active(
-                now=clock.last_check,
-            )
-            if active != was_active:
+            if clock.is_triggered():
                 promises.append(
                     cls.quickping.on_change(
                         Change(
                             thing_id=clock.id,
-                            old=was_active,
-                            new=active,
-                            attribute="is_active",
+                            old=old_time,
+                            new=new_time,
+                            attribute="time",
                         ),
                     ),
                 )
@@ -63,6 +72,7 @@ class Clock(SingletonPerId, Service):
 
     def _is_active(
         self,
+        old_time: time | None = None,
         now: time | None = None,
     ) -> bool:
         if now is None:

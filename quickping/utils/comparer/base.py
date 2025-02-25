@@ -1,18 +1,15 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from quickping import Thing
-    from quickping.services import Service
 
     from .boolean import AndComparer, OrComparer
 
 
 class Comparer:
     comparers: list["Comparer"]
-    # TODO: THIS TYPING COULD BE WAY BETTER
-    # I think we can just use any and pass in the objects and just use identity comparison
-    _things: list["Thing"] | list["Service"] | Callable
+    _things: list["Thing"] | Callable
     owner: Optional["Thing"]
 
     def __init__(
@@ -26,9 +23,9 @@ class Comparer:
             self.owner = things[0]
 
     @property
-    def things(self) -> list[Any]:
+    def things(self) -> list["Thing"]:
         things = self._things() if callable(self._things) else self._things
-        result: dict[str, Any] = {t.id: t for t in things}
+        result: dict[str, "Thing"] = {t.id: t for t in things}
         for comparer in self.comparers or []:
             for thing in comparer.things:
                 result[thing.id] = thing
