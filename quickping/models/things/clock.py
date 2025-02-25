@@ -28,7 +28,7 @@ class Clock(FauxThing):
             except Exception as e:
                 print("CLOCK ERROR", e)
 
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(15)
 
     @classmethod
     async def loop(cls, old_time: time) -> None:
@@ -41,7 +41,6 @@ class Clock(FauxThing):
             if not isinstance(clock, Clock):
                 continue
 
-            clock.last_check = new_time
             if clock.is_triggered():
                 promises.append(
                     cls.quickping.on_change(
@@ -53,11 +52,17 @@ class Clock(FauxThing):
                         ),
                     ),
                 )
+            clock.last_check = new_time
 
         await asyncio.gather(*promises)
 
     def is_triggered(self) -> bool:
-        return self._is_active(old_time=self.last_check)
+        active: bool = self._is_active()
+        was_active: bool = self._is_active(
+            now=self.last_check,
+        )
+
+        return active != was_active
 
     def is_active(self) -> bool:
         return self._is_active()
@@ -68,30 +73,17 @@ class Clock(FauxThing):
     def _is_active(
         self,
         old_time: time | None = None,
+        now: time | None = None,
     ) -> bool:
-        now: time = datetime.now().time()
+        if now is None:
+            now = datetime.now().time()
 
-        result: bool = True
-        if self.start_time is not None:
-            if now >= self.start_time:
-                if old_time:
-                    result = old_time < self.start_time
-                result = True
-            else:
-                return False
-
-        if not result:
+        if self.start_time is not None and now < self.start_time:
             return False
 
-        if self.end_time is not None:
-            if now <= self.end_time:
-                if old_time:
-                    result = old_time < self.end_time
-                result = True
-            else:
-                return False
-
-        return result
+        if self.end_time is not None and now > self.end_time:
+            return False
+        return True
 
     @property
     def comparer(self) -> CallableComparer:
