@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from quickping.decorators.collector import Collector
 
@@ -52,6 +52,11 @@ class BaseListener(Collector):
                 things[thing.id] = thing
 
         self.things = list(things.values())
+
+    def add_when(self, when: "Comparer") -> Self:
+        self.whens.append(when)
+        self.update_things()
+        return self
 
     @classmethod
     def clear(cls) -> None:

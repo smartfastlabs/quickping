@@ -15,7 +15,13 @@ if TYPE_CHECKING:
 import inspect
 
 from .decorators.collector import Collector
-from .listeners import ChangeListener, EventListener, HTTPListener, IdleListener
+from .listeners import (
+    BaseListener,
+    ChangeListener,
+    EventListener,
+    HTTPListener,
+    IdleListener,
+)
 from .models import Change, Collection, Event, FauxThing, Thing
 from .utils.importer import get_all_subclasses, load_directory
 
@@ -68,37 +74,41 @@ class QuickpingApp:
                 continue
 
             listener_args = collector.get_listener_args()
+            listeners: list[BaseListener] = []
             if collector.things:
-                self.app_daemon.track(*collector.things)  # type: ignore
-                self.change_listeners.append(
-                    ChangeListener(
-                        quickping=self,
-                        **listener_args,
-                    )
+                change_listener: ChangeListener = ChangeListener(
+                    quickping=self,
+                    **listener_args,
                 )
+                self.app_daemon.track(*change_listener.things)  # type: ignore
+                self.change_listeners.append(change_listener)
+                listeners.append(change_listener)
             if collector.idle_time is not None:
-                self.idle_listeners.append(
-                    IdleListener(
-                        quickping=self,
-                        **listener_args,
-                    )
+                idle_listener: IdleListener = IdleListener(
+                    quickping=self,
+                    **listener_args,
                 )
+                self.idle_listeners.append(idle_listener)
+                listeners.append(idle_listener)
 
             if collector.event_filter or collector.event_payload_filter:
-                self.event_listeners.append(
-                    EventListener(
-                        quickping=self,
-                        **listener_args,
-                    )
+                event_listener: EventListener = EventListener(
+                    quickping=self,
+                    **listener_args,
                 )
+                self.event_listeners.append(event_listener)
+                listeners.append(event_listener)
 
             if collector.route:
-                self.http_listeners.append(
-                    HTTPListener(
-                        quickping=self,
-                        **listener_args,
-                    )
+                http_listener: HTTPListener = HTTPListener(
+                    quickping=self,
+                    **listener_args,
                 )
+                self.http_listeners.append(http_listener)
+                listeners.append(http_listener)
+
+            # TODO: Add support for schedule only listeners
+
             self.listeners = (
                 self.change_listeners + self.event_listeners + self.idle_listeners
             )
@@ -112,7 +122,7 @@ class QuickpingApp:
         for listener in self.change_listeners:
             if listener.wants_change(change):
                 futures.append(
-                    listener.func(
+                    listener.run(
                         *self.build_args(
                             listener.func,
                             change=change,
@@ -134,7 +144,7 @@ class QuickpingApp:
             for idle_listener in self.idle_listeners:
                 if idle_listener.is_idle():
                     futures.append(
-                        idle_listener.func(
+                        idle_listener.run(
                             *self.build_args(
                                 idle_listener.func,
                             )
@@ -147,7 +157,7 @@ class QuickpingApp:
                     and (listener.last_run + listener.run_on_interval) > datetime.now()
                 ):
                     futures.append(
-                        listener.func(
+                        listener.run(
                             *self.build_args(
                                 listener.func,
                             )
