@@ -3,6 +3,7 @@ from .change import ChangeListener
 from .event import EventListener
 from .http import HTTPListener
 from .idle import IdleListener
+from .schedule import ScheduleListener as ScheduleListener
 
 
 def clear() -> None:

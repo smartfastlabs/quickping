@@ -1,8 +1,7 @@
 import asyncio
 from collections.abc import Callable
-from datetime import datetime, time
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     try:
@@ -21,6 +20,7 @@ from .listeners import (
     EventListener,
     HTTPListener,
     IdleListener,
+    ScheduleListener,
 )
 from .models import Change, Collection, Event, FauxThing, Thing
 from .utils.importer import get_all_subclasses, load_directory
@@ -40,7 +40,8 @@ class QuickpingApp:
     event_listeners: list["EventListener"]
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
-    listeners: list[Union["ChangeListener", "IdleListener", "EventListener"]]
+    schedule_listeners: list["ScheduleListener"]
+    listeners: list[BaseListener]
     faux_things: list[type]
     handler_path: str
     app_daemon: Optional["Hass"]
@@ -52,12 +53,14 @@ class QuickpingApp:
         change_listeners: list["ChangeListener"] | None = None,
         idle_listeners: list["IdleListener"] | None = None,
         http_listeners: list["HTTPListener"] | None = None,
+        schedule_listeners: list["ScheduleListener"] | None = None,
         app_daemon: Optional["Hass"] = None,
     ):
         self.change_listeners = change_listeners or []
         self.idle_listeners = idle_listeners or []
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
+        self.schedule_listeners = schedule_listeners or []
         self.handler_path = handler_path
         self.faux_things = []
         self.app_daemon = app_daemon
@@ -107,11 +110,15 @@ class QuickpingApp:
                 self.http_listeners.append(http_listener)
                 listeners.append(http_listener)
 
-            # TODO: Add support for schedule only listeners
+            if collector.run_on_interval is not None or collector.run_at:
+                schedule_listener: ScheduleListener = ScheduleListener(
+                    quickping=self,
+                    **listener_args,
+                )
+                self.schedule_listeners.append(schedule_listener)
+                listeners.append(schedule_listener)
 
-            self.listeners = (
-                self.change_listeners + self.event_listeners + self.idle_listeners
-            )
+            self.listeners.extend(listeners)
 
         self.faux_things: list[type[FauxThing]] = get_all_subclasses(FauxThing)
         for faux_thing in self.faux_things:
@@ -137,8 +144,6 @@ class QuickpingApp:
         await asyncio.gather(*futures)
 
     async def run(self) -> None:
-        last_run: time = datetime.now().time()
-
         while True:
             futures = []
             for idle_listener in self.idle_listeners:
@@ -151,29 +156,15 @@ class QuickpingApp:
                         )
                     )
 
-            for listener in self.listeners:
-                if (
-                    listener.run_on_interval
-                    and (listener.last_run + listener.run_on_interval) > datetime.now()
-                ):
+            for schedule_listener in self.schedule_listeners:
+                if schedule_listener.is_triggered():
                     futures.append(
-                        listener.run(
+                        schedule_listener.run(
                             *self.build_args(
-                                listener.func,
+                                schedule_listener.func,
                             )
                         )
                     )
-
-                if listener.run_at:
-                    for run_at in listener.run_at:
-                        if run_at > last_run and run_at < datetime.now().time():
-                            futures.append(
-                                listener.func(
-                                    *self.build_args(
-                                        listener.func,
-                                    )
-                                )
-                            )
             try:
                 await asyncio.gather(asyncio.sleep(0.5), *futures)
             except Exception as e:
@@ -184,7 +175,7 @@ class QuickpingApp:
         for listener in self.event_listeners:
             if listener.wants_event(event):
                 futures.append(
-                    listener.func(
+                    listener.run(
                         *self.build_args(
                             listener.func,
                             event=event,

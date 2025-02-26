@@ -27,6 +27,8 @@ class BaseListener(Collector):
         whens: list["Comparer"] | None = None,
         **kwargs: Any,
     ):
+        # TODO: Make this work
+        # super().__init__(func, things=things, **kwargs)
         self.quickping = quickping
         self.name = name
         self.func = func
