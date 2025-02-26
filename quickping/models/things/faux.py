@@ -40,7 +40,7 @@ class FauxThing(Thing):
         return self
 
     @property
-    def state(self) -> str:
+    def _state(self) -> str:
         return "on" if self.task else "off"
 
     def on_load(self) -> Self:

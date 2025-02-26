@@ -54,7 +54,6 @@ class BaseListener:
         things: dict[str, "Thing"] = {}
         for when in self.whens:
             for thing in when.things:
-                print(thing.id, thing)
                 things[thing.id] = thing
 
         self.things = list(things.values())

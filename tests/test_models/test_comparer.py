@@ -4,7 +4,7 @@ from quickping.utils.comparer import CallableComparer
 def test_basic(test_light):
     # Create a new comparer
     comparer = CallableComparer(
-        lambda: test_light.state == "on",
+        lambda: test_light.state.value == "on",
     )
 
     assert comparer
@@ -13,14 +13,14 @@ def test_basic(test_light):
 def test_boolean(test_light):
     # Create a new comparer
     comparer = CallableComparer(
-        lambda: test_light.state == "on",
+        lambda: test_light.state.value == "on",
     )
     comparer_2 = CallableComparer(
         lambda: test_light.brightness == 255,
     )
 
     comparer_3 = CallableComparer(
-        lambda: test_light.state == "off",
+        lambda: test_light.state.value == "off",
     )
 
     assert comparer

@@ -5,6 +5,8 @@ class AttributesMeta(type):
     def __new__(cls, class_name, bases, attrs):  # type: ignore
         if "__annotations__" in attrs:
             for name, anno in list(attrs["__annotations__"].items()):
+                if name == "state":
+                    continue
                 if name in attrs:
                     continue
                 if not hasattr(anno, "__origin__"):

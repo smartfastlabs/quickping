@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
-from quickping.utils.comparer import CallableComparer
+from quickping.utils.comparer import ValueComparer
 from quickping.utils.meta import AttributesMeta
 
 if TYPE_CHECKING:
@@ -8,67 +8,8 @@ if TYPE_CHECKING:
     from quickping.models.things.thing import Thing
 
 
-class Attribute:
-    entity: Any
-    thing: Optional["Thing"]
-    name: str
-    value_type: type | None = None
-
-    def __init__(
-        self,
-        name: str,
-        entity: Any = None,
-        thing: Optional["Thing"] = None,
-        value_type: type | None = None,
-    ):
-        self.value_type = value_type
-        self.entity = entity
-        self.name = name
-        self.thing = thing
-
-    def things(self) -> list["Thing"]:
-        if not self.thing:
-            print("NO THING")
-            return []
-
-        return [self.thing]
-
-    @property
-    def value(self) -> Any:
-        if self.entity is None:
-            return
-        if hasattr(self.entity, "attributes"):
-            return getattr(self.entity.attributes, self.name)
-
-    def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
-        return CallableComparer(
-            lambda: self.value == other,
-            things=self.things,
-        )
-
-    def __lt__(self, other: Any) -> CallableComparer:
-        return CallableComparer(
-            lambda: self.value < other,
-            things=self.things,
-        )
-
-    def __le__(self, other: Any) -> CallableComparer:
-        return CallableComparer(
-            lambda: self.value <= other,
-            things=self.things,
-        )
-
-    def __gt__(self, other: Any) -> CallableComparer:
-        return CallableComparer(
-            lambda: self.value > other,
-            things=self.things,
-        )
-
-    def __ge__(self, other: Any) -> CallableComparer:
-        return CallableComparer(
-            lambda: self.value >= other,
-            things=self.things,
-        )
+class Attribute(ValueComparer):
+    pass
 
 
 class Attributes(metaclass=AttributesMeta):

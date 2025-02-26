@@ -8,7 +8,7 @@ def test_is(test_light):
     assert test_light.is_(state="on")
     assert not test_light.is_(state="off")
 
-    assert test_light.is_(brightness=255)
+    assert bool(test_light.is_(brightness=255))
     assert not test_light.is_(brightness=0)
 
     assert test_light.is_("on", brightness=255)
@@ -26,3 +26,8 @@ def test_attributes(TestComplexThing, test_quickping):
 
 def test_default_value(TestCollection):
     assert TestCollection.light == TestCollection.other_light
+
+
+def test_state(test_light):
+    assert test_light.state == "on"
+    assert not test_light.state == "off"

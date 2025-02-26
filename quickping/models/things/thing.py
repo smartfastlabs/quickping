@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
-from quickping.utils.comparer import CallableComparer
+from quickping.utils.comparer import CallableComparer, ValueComparer
 from quickping.utils.meta import AttributesMeta
 
 from .base import Base
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     entity: Optional["Entity"] = None
     instances: ClassVar[dict[str, "Thing"]] = {}  # type: ignore
+    state: ValueComparer
 
     def __init__(
         self,
@@ -23,17 +24,21 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         entity: Optional["Entity"] = None,
         quickping: Optional["QuickpingApp"] = None,
     ):
-        super().__init__(_id, quickping)
-        self.entity = entity
         if entity is None and quickping is not None:
             self.entity = quickping.get_entity(_id)
+        else:
+            self.entity = entity
+
+        self.state = ValueComparer(
+            "_state",
+            entity=entity,
+            thing=self,
+        )
+        super().__init__(_id, quickping)
 
     @property
-    def state(self) -> Any:
-        if self.entity is None:
-            return
-
-        return self.entity.state
+    def _state(self) -> str:
+        return self.entity.state if self.entity else "NA"
 
     def __getattr__(self, name: str) -> Any:
         if self.entity is None:
@@ -69,10 +74,10 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         return self
 
     def is_on(self) -> CallableComparer:
-        return self.is_("on")
+        return self.state == "on"
 
     def is_off(self) -> CallableComparer:
-        return self.is_("off")
+        return self.state == "off"
 
     def is_(
         self,
@@ -80,14 +85,14 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         **kwargs: Any,
     ) -> CallableComparer:
         def check() -> bool:
-            if state is not None and self.state != state:
+            if state is not None and self._state != state:
                 return False
 
-            for key, value in kwargs.items():
+            for key, expected_value in kwargs.items():
                 if not self.has(key):
                     return False
 
-                if getattr(self, key) != value:
+                if getattr(self, key) != expected_value:
                     return False
 
             return True
