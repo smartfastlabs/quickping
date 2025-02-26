@@ -4,6 +4,7 @@ import sys
 from typing import Any
 
 from quickping import listeners
+from quickping.decorators.collector import Collector
 
 
 def fix_name(name: str) -> str:
@@ -30,8 +31,10 @@ def unload_directory(
 def load_directory(path: str) -> dict[str, Any]:
     modules = {
         "listeners": listeners,
+        "Collector": Collector,
     }
     listeners.clear()
+    Collector.clear()
     unload_directory(path)
 
     for root, _, filenames in os.walk(path):

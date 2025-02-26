@@ -68,3 +68,7 @@ class Collector:
                 things[thing.id] = thing
 
         return list(things.values())
+
+    @classmethod
+    def clear(cls) -> None:
+        cls.instances = []

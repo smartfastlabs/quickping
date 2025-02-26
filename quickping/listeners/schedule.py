@@ -8,17 +8,19 @@ class ScheduleListener(BaseListener):
         if not self.is_active():
             return False
 
-        if (
-            self.run_on_interval is not None
-            and self.last_run + self.run_on_interval < datetime.now()
-        ):
-            return True
+        if self.run_on_interval is not None:
+            print("ADFSDF", self.last_run, self.run_on_interval)
+            if (
+                self.last_run is None
+                or (self.last_run + self.run_on_interval) <= datetime.now()
+            ):
+                return True
 
         for run_at in self.run_at:
-            if run_at < datetime.now().time():
+            if run_at > datetime.now().time():
                 continue
 
-            if self.last_run is None or self.last_run < run_at:
+            if self.last_run is None or self.last_run.time() <= run_at:
                 return True
 
         return False

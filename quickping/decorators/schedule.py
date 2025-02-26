@@ -26,8 +26,9 @@ def run_every(
 
 
 def run_at(*times: time) -> Callable:
-    def decorator(func: Callable) -> Callable:
-        func.times = times  # type: ignore
-        return func
+    def decorator(func: Callable | Collector) -> Collector:
+        collector: Collector = func if isinstance(func, Collector) else Collector(func)
+        collector.run_at.extend(times)
+        return collector
 
     return decorator

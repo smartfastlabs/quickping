@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 import inspect
 
-from .decorators.collector import Collector
 from .listeners import (
     ChangeListener,
     EventListener,
@@ -74,13 +73,13 @@ class QuickpingApp:
         self.app_daemon = app_daemon
 
     def load_handlers(self) -> None:
-        load_directory(self.handler_path)
+        modules: dict = load_directory(self.handler_path)
 
         for thing in list(Thing.instances.values()):
             if hasattr(thing, "load"):
                 thing.load(self)
 
-        for collector in Collector.instances:
+        for collector in modules["Collector"].instances:
             if collector.disabled:
                 continue
 
@@ -159,31 +158,35 @@ class QuickpingApp:
         await asyncio.gather(*futures)
 
     async def run(self) -> None:
-        while True:
-            futures = []
-            for idle_listener in self.idle_listeners:
-                if idle_listener.is_idle():
-                    futures.append(
-                        idle_listener.run(
-                            *self.build_args(
-                                idle_listener.func,
+        try:
+            while True:
+                futures = []
+                for idle_listener in self.idle_listeners:
+                    if idle_listener.is_idle():
+                        futures.append(
+                            idle_listener.run(
+                                *self.build_args(
+                                    idle_listener.func,
+                                )
                             )
                         )
-                    )
 
-            for schedule_listener in self.schedule_listeners:
-                if schedule_listener.is_triggered():
-                    futures.append(
-                        schedule_listener.run(
-                            *self.build_args(
-                                schedule_listener.func,
+                for schedule_listener in self.schedule_listeners:
+                    if schedule_listener.is_triggered():
+                        futures.append(
+                            schedule_listener.run(
+                                *self.build_args(
+                                    schedule_listener.func,
+                                )
                             )
                         )
-                    )
-            try:
-                await asyncio.gather(asyncio.sleep(0.5), *futures)
-            except Exception as e:
-                print(f"Error running idle listeners: {e}")
+                try:
+                    await asyncio.gather(asyncio.sleep(0.5), *futures)
+                except Exception as e:
+                    print(f"Error running idle listeners: {e}")
+        except Exception as e:
+            print(f"Error running QuickpingApp {e}")
+            await self.run()
 
     async def on_event(self, event: Event) -> None:
         futures = []
