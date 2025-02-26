@@ -1,14 +1,17 @@
 from collections.abc import Callable
 
-from quickping import listeners
+from .collector import Collector
 
 
-def route(path: str) -> Callable:
-    def decorator(func: Callable) -> listeners.HTTPListener:
-        return listeners.HTTPListener(
-            name=f"{func.__module__}.{func.__name__}",
-            path=path,
-            func=func,
+def route(route: str) -> Callable:
+    def decorator(func: Callable | Collector) -> Collector:
+        if isinstance(func, Collector):
+            func.route = route
+            return func
+
+        return Collector(
+            func,
+            route=route,
         )
 
     return decorator

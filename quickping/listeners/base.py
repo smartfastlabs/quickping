@@ -1,43 +1,38 @@
 import datetime
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Optional
+
+from quickping.decorators.collector import Collector
 
 if TYPE_CHECKING:
+    from quickping import QuickpingApp
     from quickping.models import Thing
     from quickping.utils.comparer import Comparer
 
 DEFAULT_LISTENERS: list["BaseListener"] = []
 
 
-class BaseListener:
+class BaseListener(Collector):
     name: str
-    func: Callable
-    instances: list["BaseListener"] = DEFAULT_LISTENERS
+    instances: list["BaseListener"] = DEFAULT_LISTENERS  # type: ignore
     quickping: Any = None
-    disabled: bool = False
-    whens: list["Comparer"]
-    things: list["Thing"]
-    after_time: datetime.time | None = None
-    before_time: datetime.time | None = None
+    last_run: datetime.datetime
 
     def __init__(
         self,
         name: str,
         func: Callable,
+        quickping: Optional["QuickpingApp"] = None,
         things: list["Thing"] | None = None,
         whens: list["Comparer"] | None = None,
         **kwargs: Any,
     ):
+        self.quickping = quickping
         self.name = name
         self.func = func
         self.whens = whens or []
         self.things = things or []
-
-        if hasattr(func, "disabled"):
-            self.disabled = func.disabled
-
-        for key in ("before_time", "after_time", "disabled"):
-            setattr(self, key, getattr(func, key, None))
+        self.last_run = datetime.datetime.now()
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -57,11 +52,6 @@ class BaseListener:
                 things[thing.id] = thing
 
         self.things = list(things.values())
-
-    def add_when(self, when: "Comparer") -> Self:
-        self.whens.append(when)
-        self.update_things()
-        return self
 
     @classmethod
     def clear(cls) -> None:
@@ -84,5 +74,6 @@ class BaseListener:
 
         return all(self.whens)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self.func(*args, **kwargs)
+    async def run(self, *args: Any, **kwargs: Any) -> Any:
+        self.last_run = datetime.datetime.now()
+        return await self.func(*args, **kwargs)

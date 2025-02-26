@@ -1,11 +1,10 @@
 import asyncio
 from collections.abc import Callable
+from datetime import datetime, time
 from inspect import isclass
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 if TYPE_CHECKING:
-    from .listeners import ChangeListener, EventListener, HTTPListener, IdleListener
-
     try:
         from appdaemon.entity import Entity  # type: ignore
         from appdaemon.plugins.hass.hassapi import Hass  # type: ignore
@@ -15,6 +14,8 @@ if TYPE_CHECKING:
 
 import inspect
 
+from .decorators.collector import Collector
+from .listeners import ChangeListener, EventListener, HTTPListener, IdleListener
 from .models import Change, Collection, Event, FauxThing, Thing
 from .utils.importer import get_all_subclasses, load_directory
 
@@ -33,6 +34,7 @@ class QuickpingApp:
     event_listeners: list["EventListener"]
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
+    listeners: list[Union["ChangeListener", "IdleListener", "EventListener"]]
     faux_things: list[type]
     handler_path: str
     app_daemon: Optional["Hass"]
@@ -55,15 +57,51 @@ class QuickpingApp:
         self.app_daemon = app_daemon
 
     def load_handlers(self) -> None:
-        handlers = load_directory(self.handler_path)
-        self.change_listeners = handlers["listeners"].ChangeListener.instances
-        self.event_listeners = handlers["listeners"].EventListener.instances
-        self.idle_listeners = handlers["listeners"].IdleListener.instances
-        self.http_listeners = handlers["listeners"].HTTPListener.instances
+        load_directory(self.handler_path)
 
         for thing in list(Thing.instances.values()):
             if hasattr(thing, "load"):
                 thing.load(self)
+
+        for collector in Collector.instances:
+            if collector.disabled:
+                continue
+
+            listener_args = collector.get_listener_args()
+            if collector.things:
+                self.app_daemon.track(*collector.things)  # type: ignore
+                self.change_listeners.append(
+                    ChangeListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                )
+            if collector.idle_time is not None:
+                self.idle_listeners.append(
+                    IdleListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                )
+
+            if collector.event_filter:
+                self.event_listeners.append(
+                    EventListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                )
+
+            if collector.route:
+                self.http_listeners.append(
+                    HTTPListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                )
+            self.listeners = (
+                self.change_listeners + self.event_listeners + self.idle_listeners
+            )
 
         for listener in self.idle_listeners + self.change_listeners:
             listener.quickping = self
@@ -95,6 +133,49 @@ class QuickpingApp:
                 futures.append(idle_listener.on_change())
 
         await asyncio.gather(*futures)
+
+    async def run(self) -> None:
+        last_run: time = datetime.now().time()
+
+        while True:
+            futures = []
+            for idle_listener in self.idle_listeners:
+                if idle_listener.is_idle():
+                    futures.append(
+                        idle_listener.func(
+                            *self.build_args(
+                                idle_listener.func,
+                            )
+                        )
+                    )
+
+            for listener in self.listeners:
+                if (
+                    listener.run_on_interval
+                    and (listener.last_run + listener.run_on_interval) > datetime.now()
+                ):
+                    futures.append(
+                        listener.func(
+                            *self.build_args(
+                                listener.func,
+                            )
+                        )
+                    )
+
+                if listener.run_at:
+                    for run_at in listener.run_at:
+                        if run_at > last_run and run_at < datetime.now().time():
+                            futures.append(
+                                listener.func(
+                                    *self.build_args(
+                                        listener.func,
+                                    )
+                                )
+                            )
+            try:
+                await asyncio.gather(asyncio.sleep(0.5), *futures)
+            except Exception as e:
+                print(f"Error running idle listeners: {e}")
 
     async def on_event(self, event: Event) -> None:
         futures = []

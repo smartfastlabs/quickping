@@ -1,17 +1,17 @@
 from collections.abc import Callable
 
-from quickping import listeners
 from quickping.models import Thing
+
+from .collector import Collector
 
 
 def on_change(
     *things: Thing,
 ) -> Callable:
-    def decorator(func: Callable) -> listeners.ChangeListener:
-        return listeners.ChangeListener(
-            name=f"{func.__module__}.{func.__name__}",
-            things=list(things),
-            func=func,
-        )
+    def decorator(func: Callable | Collector) -> Collector:
+        collector: Collector = func if isinstance(func, Collector) else Collector(func)
+
+        collector.things.extend(things)
+        return collector
 
     return decorator

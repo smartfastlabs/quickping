@@ -1,20 +1,24 @@
 from collections.abc import Callable
 from datetime import timedelta
 
-from quickping import listeners
 from quickping.models import Thing
+
+from .collector import Collector
 
 
 def on_idle(
-    timedelta: timedelta,
+    idle_time: timedelta,
     *things: Thing,
 ) -> Callable:
-    def decorator(func: Callable) -> listeners.IdleListener:
-        return listeners.IdleListener(
-            func=func,
-            name=f"{func.__module__}.{func.__name__}",
-            things=list(things),
-            timedelta=timedelta,
+    def decorator(func: Callable | Collector) -> Collector:
+        if isinstance(func, Collector):
+            func.things.extend(things)
+            func.idle_time = idle_time
+
+        return Collector(
+            func,
+            things=things,
+            idle_time=idle_time,
         )
 
     return decorator

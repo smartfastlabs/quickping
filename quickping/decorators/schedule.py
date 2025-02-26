@@ -1,9 +1,33 @@
 from collections.abc import Callable
+from datetime import time, timedelta
+
+from .collector import Collector
 
 
-def schedule(func: Callable) -> Callable:
-    def wrapper(*args, **kwargs):  # type: ignore
-        print(f"Running {func.__name__} with args {args} and kwargs {kwargs}")
-        return func(*args, **kwargs)
+def run_every(
+    seconds: float | timedelta | None = None,
+    minutes: int | None = None,
+    hours: int | None = None,
+) -> Callable:
+    def decorator(func: Callable | Collector) -> Collector:
+        collector: Collector = func if isinstance(func, Collector) else Collector(func)
 
-    return wrapper
+        if isinstance(seconds, timedelta):
+            collector.run_on_interval = seconds
+        else:
+            collector.run_on_interval = timedelta(
+                seconds=seconds or 0,
+                minutes=minutes or 0,
+                hours=hours or 0,
+            )
+        return collector
+
+    return decorator
+
+
+def run_at(*times: time) -> Callable:
+    def decorator(func: Callable) -> Callable:
+        func.times = times  # type: ignore
+        return func
+
+    return decorator
