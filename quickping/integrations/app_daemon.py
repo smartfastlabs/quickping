@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 import appdaemon.plugins.hass.hassapi as hass  # type: ignore
@@ -9,6 +10,7 @@ from quickping.app import QuickpingApp
 class AppDaemonApp(hass.Hass):
     quickping: QuickpingApp
     tracked: dict[str, Thing]
+    quickping_task: asyncio.Task | None
 
     async def initialize(self) -> None:
         self.tracked = {}
@@ -18,6 +20,7 @@ class AppDaemonApp(hass.Hass):
         )
         self.quickping.load_handlers()
         self.listen_event(self.on_event)
+        self.quickping_task = asyncio.create_task(self.quickping.run())
 
     async def on_event(
         self,

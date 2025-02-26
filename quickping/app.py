@@ -15,7 +15,6 @@ import inspect
 
 from .decorators.collector import Collector
 from .listeners import (
-    BaseListener,
     ChangeListener,
     EventListener,
     HTTPListener,
@@ -41,7 +40,9 @@ class QuickpingApp:
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
     schedule_listeners: list["ScheduleListener"]
-    listeners: list[BaseListener]
+    listeners: list[
+        EventListener | HTTPListener | IdleListener | ChangeListener | ScheduleListener
+    ]
     faux_things: list[type]
     handler_path: str
     app_daemon: Optional["Hass"]
@@ -61,6 +62,13 @@ class QuickpingApp:
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
         self.schedule_listeners = schedule_listeners or []
+        self.listeners = (
+            self.change_listeners
+            + self.idle_listeners
+            + self.http_listeners
+            + self.event_listeners
+            + self.schedule_listeners
+        )
         self.handler_path = handler_path
         self.faux_things = []
         self.app_daemon = app_daemon
@@ -77,7 +85,13 @@ class QuickpingApp:
                 continue
 
             listener_args = collector.get_listener_args()
-            listeners: list[BaseListener] = []
+            listeners: list[
+                EventListener
+                | HTTPListener
+                | IdleListener
+                | ChangeListener
+                | ScheduleListener
+            ] = []
             if collector.things:
                 change_listener: ChangeListener = ChangeListener(
                     quickping=self,
@@ -86,6 +100,7 @@ class QuickpingApp:
                 self.app_daemon.track(*change_listener.things)  # type: ignore
                 self.change_listeners.append(change_listener)
                 listeners.append(change_listener)
+
             if collector.idle_time is not None:
                 idle_listener: IdleListener = IdleListener(
                     quickping=self,

@@ -1,23 +1,22 @@
-from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
-from quickping.models import Change, Thing
+from quickping.models import Change
 
 from .base import BaseListener
 
 
 class IdleListener(BaseListener):
-    func: Callable
-    name: str
-    things: list[Thing]
-    timedelta: timedelta
-
     def is_idle(self) -> bool:
         if not self.is_active():
             return False
 
-        return datetime.now() - self.last_run > self.timedelta
+        if not self.idle_time:
+            return False
+
+        if not self.last_run:
+            return True
+        return datetime.now() - self.last_run > self.idle_time
 
     async def on_change(
         self,
