@@ -84,7 +84,7 @@ class QuickpingApp:
                     )
                 )
 
-            if collector.event_filter:
+            if collector.event_filter or collector.event_payload_filter:
                 self.event_listeners.append(
                     EventListener(
                         quickping=self,
@@ -102,14 +102,6 @@ class QuickpingApp:
             self.listeners = (
                 self.change_listeners + self.event_listeners + self.idle_listeners
             )
-
-        for listener in self.idle_listeners + self.change_listeners:
-            listener.quickping = self
-            if self.app_daemon:
-                self.app_daemon.track(*listener.things)
-
-        for http_listener in self.http_listeners:
-            http_listener.quickping = self
 
         self.faux_things: list[type[FauxThing]] = get_all_subclasses(FauxThing)
         for faux_thing in self.faux_things:

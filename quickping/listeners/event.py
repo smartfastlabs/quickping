@@ -1,14 +1,9 @@
-from typing import Any
-
 from quickping.models import Event
 
 from .base import BaseListener
 
 
 class EventListener(BaseListener):
-    entity_filters: dict[str, Any]
-    event_filter: str
-
     def wants_event(self, event: Event) -> bool:
         if not self.is_active():
             return False
@@ -16,10 +11,10 @@ class EventListener(BaseListener):
         if self.event_filter and event.name != self.event_filter:
             return False
 
-        elif not self.entity_filters:
+        elif not self.event_payload_filter:
             return True
 
-        for key, value in self.entity_filters.items():
+        for key, value in self.event_payload_filter.items():
             if key not in event.data:
                 return False
 

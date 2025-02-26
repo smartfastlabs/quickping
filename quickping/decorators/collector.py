@@ -42,9 +42,12 @@ class Collector:
     async def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return await self.func(*args, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.func.__module__}.{self.func.__name__}"
+
     def get_listener_args(self) -> dict[str, Any]:
         return {
-            "name": f"{self.func.__module__} {self.func.__name__}",
+            "name": f"{self}",
             "func": self.func,
             "things": self.all_things(),
             "whens": self.whens,

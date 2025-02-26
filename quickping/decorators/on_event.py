@@ -1,16 +1,23 @@
 from collections.abc import Callable
 from typing import Any
 
-from quickping import listeners
+from .collector import Collector
 
 
-def on_event(event: str | None = None, **entity_filters: Any) -> Callable:
-    def decorator(func: Callable) -> listeners.EventListener:
-        return listeners.EventListener(
-            name=f"{func.__module__}.{func.__name__}",
+def on_event(
+    event: str | None = None,
+    **event_payload_filter: Any,
+) -> Callable:
+    def decorator(func: Callable | Collector) -> Collector:
+        if isinstance(func, Collector):
+            func.event_filter = event
+            func.event_payload_filter = event_payload_filter
+            return func
+
+        return Collector(
+            func,
             event_filter=event,
-            entity_filters=entity_filters,
-            func=func,
+            event_payload_filter=event_payload_filter,
         )
 
     return decorator
