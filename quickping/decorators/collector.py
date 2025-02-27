@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from quickping.models import Thing
     from quickping.utils.comparer import Comparer
 
+DEFAULT_COLLECTORS: list["Collector"] = []
+
 
 class Collector:
     days: list[int]
@@ -21,7 +23,7 @@ class Collector:
     idle_time: timedelta | None = None
     route: str | None = None
     run_on_interval: timedelta | None = None
-    instances: ClassVar[list["Collector"]] = []
+    instances: ClassVar[list["Collector"]] = DEFAULT_COLLECTORS
 
     def __init__(self, func: Callable, **kwargs: Any):
         for key in (
@@ -37,6 +39,9 @@ class Collector:
                 setattr(self, key, value)
 
         self.func = func
+        if self.__class__.instances is DEFAULT_COLLECTORS:
+            self.__class__.instances = []
+
         self.instances.append(self)
 
     async def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -71,4 +76,4 @@ class Collector:
 
     @classmethod
     def clear(cls) -> None:
-        cls.instances = []
+        cls.instances = DEFAULT_COLLECTORS
