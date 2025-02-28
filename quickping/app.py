@@ -91,22 +91,23 @@ class QuickpingApp:
                 | ChangeListener
                 | ScheduleListener
             ] = []
-            if collector.things:
-                change_listener: ChangeListener = ChangeListener(
-                    quickping=self,
-                    **listener_args,
-                )
-                self.app_daemon.track(*change_listener.things)  # type: ignore
-                self.change_listeners.append(change_listener)
-                listeners.append(change_listener)
 
-            if collector.idle_time is not None:
-                idle_listener: IdleListener = IdleListener(
-                    quickping=self,
-                    **listener_args,
-                )
-                self.idle_listeners.append(idle_listener)
-                listeners.append(idle_listener)
+            if collector.things:
+                listener: ChangeListener | IdleListener
+                if collector.idle_time is not None:
+                    listener = IdleListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                    self.idle_listeners.append(listener)
+                else:
+                    listener = ChangeListener(
+                        quickping=self,
+                        **listener_args,
+                    )
+                    self.change_listeners.append(listener)
+                self.app_daemon.track(*listener.things)  # type: ignore
+                listeners.append(listener)
 
             if collector.event_filter or collector.event_payload_filter:
                 event_listener: EventListener = EventListener(

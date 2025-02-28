@@ -1,2 +1,0 @@
-* get the on_schedule decorator working
-* Make listeners __call__able so they can be used like normal functions

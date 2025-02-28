@@ -22,6 +22,10 @@ class AppDaemonApp(hass.Hass):
         self.listen_event(self.on_event)
         self.quickping_task = asyncio.create_task(self.quickping.run())
 
+    async def terminate(self) -> None:
+        if self.quickping_task:
+            self.quickping_task.cancel()
+
     async def on_event(
         self,
         name: str,
