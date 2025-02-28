@@ -20,6 +20,4 @@ class AttributesMeta(type):
                     else:
                         attrs[name] = anno.__origin__(anno.__metadata__[0])
 
-                if name == "lights":
-                    print("META", attrs[name].id)
         return super().__new__(cls, class_name, bases, attrs)

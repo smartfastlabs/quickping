@@ -22,6 +22,7 @@ from .models import (
     Device as Device,
     Event as Event,
     FauxThing as FauxThing,
+    Light as Light,
     Thing as Thing,
 )
 from .utils import importer

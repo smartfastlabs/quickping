@@ -1,0 +1,5 @@
+- Consolidate ValueComparer.thing and ValueComparer.entity...they shouldn't both be there. 
+- Figure out how to make 
+     - test_light.brightness: int
+     - TestLight.brightness: Comparer
+- Import Entities

@@ -23,6 +23,8 @@ class ValueComparer:
         self.entity = entity
         self.name = name
         self.thing = thing
+        if not self.entity and thing and thing.entity:
+            self.entity = thing.entity
 
     def things(self) -> list["Thing"]:
         if not self.thing:
@@ -53,11 +55,13 @@ class ValueComparer:
                     None,
                 )
 
-        return getattr(
-            self.thing,
-            self.name,
-            None,
-        )
+        if hasattr(self.thing, self.name):
+            return getattr(
+                self.thing,
+                self.name,
+                None,
+            )
+        return None
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
         return CallableComparer(

@@ -8,5 +8,6 @@ from .things import (
     Collection as Collection,
     Device as Device,
     FauxThing as FauxThing,
+    Light as Light,
     Thing as Thing,
 )

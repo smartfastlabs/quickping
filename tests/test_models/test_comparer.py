@@ -15,9 +15,7 @@ def test_boolean(test_light):
     comparer = CallableComparer(
         lambda: test_light.state.value == "on",
     )
-    comparer_2 = CallableComparer(
-        lambda: test_light.brightness == 255,
-    )
+    comparer_2 = test_light.brightness == 255
 
     comparer_3 = CallableComparer(
         lambda: test_light.state.value == "off",
