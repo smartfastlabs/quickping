@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
 
 class ValueComparer:
-    entity: Any
     thing: Optional["Thing"]
     name: str
     value_type: type | None = None
@@ -15,53 +14,25 @@ class ValueComparer:
     def __init__(
         self,
         name: str,
-        entity: Any = None,
         thing: Optional["Thing"] = None,
         value_type: type | None = None,
     ):
         self.value_type = value_type
-        self.entity = entity
         self.name = name
         self.thing = thing
-        if not self.entity and thing and thing.entity:
-            self.entity = thing.entity
 
     def things(self) -> list["Thing"]:
         if not self.thing:
-            print("NO THING")
             return []
 
         return [self.thing]
 
     @property
     def value(self) -> Any:
-        if self.entity:
-            # TODO HORRIBLE HACK This was necessary when supporting _state on things
-            entity_name: str = self.name.lstrip("_")
-            if hasattr(self.entity, "attributes") and hasattr(
-                self.entity.attributes,
-                entity_name,
-            ):
-                return getattr(
-                    self.entity.attributes,
-                    entity_name,
-                    None,
-                )
+        if not self.thing:
+            return None
 
-            if hasattr(self.entity, entity_name):
-                return getattr(
-                    self.entity,
-                    entity_name,
-                    None,
-                )
-
-        if hasattr(self.thing, self.name):
-            return getattr(
-                self.thing,
-                self.name,
-                None,
-            )
-        return None
+        return self.thing.get_attribute(self.name)
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
         return CallableComparer(

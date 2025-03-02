@@ -30,7 +30,6 @@ class Base:
 
                     kwargs[attr_name] = Attribute(
                         name,
-                        entity=quickping.get_entity(self.id) if quickping else None,
                         thing=self,  # type: ignore
                         value_type=value_type,
                     )
@@ -45,7 +44,6 @@ class Base:
                         name,
                         value.__origin__(
                             name,
-                            entity=entity,
                             thing=self,
                             value_type=value.__metadata__[0],
                         ),

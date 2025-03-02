@@ -36,4 +36,3 @@ class Attributes(metaclass=AttributesMeta):
         for _key, value in self.__dict__.items():
             if isinstance(value, Attribute):
                 value.thing = thing
-                value.entity = thing.entity

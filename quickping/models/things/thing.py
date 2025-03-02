@@ -31,7 +31,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
         self.state = ValueComparer(
             "_state",
-            entity=entity,
             thing=self,
         )
         super().__init__(_id, quickping)
@@ -44,6 +43,20 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         if self.entity is None:
             return None
         return getattr(self.entity, name)
+
+    def get_attribute(self, name: str) -> Any:
+        name = name.lstrip("_")
+        if self.entity is None:
+            print(f"Entity not set on {self}")
+            return None
+
+        if hasattr(self.entity, name):
+            return getattr(self.entity, name)
+        if hasattr(self.entity, "attributes") and hasattr(self.entity.attribute, name):
+            return getattr(self.entity.attribute, name)
+
+        print(f"Attribute {name} not found on {self.entity}")
+        return None
 
     def has(self, name: str) -> bool:
         if hasattr(self, name):
