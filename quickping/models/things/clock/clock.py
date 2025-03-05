@@ -1,20 +1,53 @@
 import asyncio
 import uuid
 from datetime import datetime, time
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from quickping.models.change import Change
+from quickping.models.things.faux import FauxThing
 from quickping.utils.clock import get_time
 from quickping.utils.comparer import CallableComparer
 
-from .faux import FauxThing
+from .day import Day
+from .hour import Hour
+
+if TYPE_CHECKING:
+    from quickping.app import QuickpingApp
 
 
 class Clock(FauxThing):
+    SUNDAY: int = 0
+    MONDAY: int = 1
+    TUESDAY: int = 2
+    WEDNESDAY: int = 3
+    THURSDAY: int = 4
+    FRIDAY: int = 5
+    SATURDAY: int = 6
+
     id: str = "clock"
     start_time: time | None = None
     end_time: time | None = None
     last_check: time | None = None
+
+    def __init__(
+        self,
+        _id: str,
+        quickping: Optional["QuickpingApp"] = None,
+        start_time: time | None = None,
+        end_time: time | None = None,
+    ) -> None:
+        super().__init__(_id, quickping=quickping)
+        self.start_time = start_time
+        self.end_time = end_time
+        self.last_check = datetime.now().time()
+
+    @property
+    def hour(self) -> Hour:
+        return Hour(Clock("clock.hourly"))
+
+    @property
+    def day(self) -> "Day":
+        return Day(Clock("clock.daily"))
 
     @classmethod
     async def run(cls) -> None:

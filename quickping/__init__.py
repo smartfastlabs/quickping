@@ -16,6 +16,7 @@ from .decorators.when import when as when
 from .models import (
     Attribute as Attribute,
     Attributes as Attributes,
+    BinarySensor as BinarySensor,
     Blind as Blind,
     Change as Change,
     Clock as Clock,

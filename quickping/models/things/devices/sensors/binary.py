@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING
 
-from .binary import BinarySensor
+from .sensor import Sensor
 
 if TYPE_CHECKING:
     from quickping.utils.comparer import Comparer
 
 
-class MotionSensor(BinarySensor):
+class BinarySensor(Sensor):
     @property
-    def is_moving(self) -> "Comparer":
+    def is_triggered(self) -> "Comparer":
         return self.state == "on"
 
     @property
-    def is_still(self) -> "Comparer":
+    def is_untriggered(self) -> "Comparer":
         return self.state == "off"

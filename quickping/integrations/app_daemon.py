@@ -23,7 +23,7 @@ class AppDaemonApp(hass.Hass):
         self.quickping_task = asyncio.create_task(self.quickping.run())
 
     async def terminate(self) -> None:
-        if qp := self.quickping_task:
+        if qp := getattr(self, "quickping_task", None):
             qp.cancel()
             try:
                 await qp
