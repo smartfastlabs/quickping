@@ -23,10 +23,10 @@ class AppDaemonApp(hass.Hass):
         self.quickping_task = asyncio.create_task(self.quickping.run())
 
     async def terminate(self) -> None:
-        if self.quickping_task:
-            self.quickping_task.cancel()
+        if qp := self.quickping_task:
+            qp.cancel()
             try:
-                await self.quickping_task
+                await qp
             except asyncio.CancelledError:
                 print("Quickping task cancelled")
 

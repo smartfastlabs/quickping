@@ -92,7 +92,7 @@ class QuickpingApp:
                 | ScheduleListener
             ] = []
 
-            if collector.things:
+            if things := collector.all_things():
                 listener: ChangeListener | IdleListener
                 if collector.idle_time is not None:
                     listener = IdleListener(
@@ -106,7 +106,7 @@ class QuickpingApp:
                         **listener_args,
                     )
                     self.change_listeners.append(listener)
-                self.app_daemon.track(*listener.things)  # type: ignore
+                self.app_daemon.track(*things)  # type: ignore
                 listeners.append(listener)
 
             if collector.event_filter or collector.event_payload_filter:

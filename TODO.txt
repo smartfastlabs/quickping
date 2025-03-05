@@ -1,4 +1,0 @@
-- Figure out how to make 
-     - test_light.brightness: int
-     - TestLight.brightness: Comparer
-- Import Entities

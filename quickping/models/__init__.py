@@ -9,5 +9,7 @@ from .things import (
     Device as Device,
     FauxThing as FauxThing,
     Light as Light,
+    MotionSensor as MotionSensor,
+    Sensor as Sensor,
     Thing as Thing,
 )
