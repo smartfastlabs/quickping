@@ -16,6 +16,7 @@ from .decorators.when import when as when
 from .models import (
     Attribute as Attribute,
     Attributes as Attributes,
+    Blind as Blind,
     Change as Change,
     Clock as Clock,
     Collection as Collection,
@@ -23,6 +24,8 @@ from .models import (
     Event as Event,
     FauxThing as FauxThing,
     Light as Light,
+    MotionSensor as MotionSensor,
+    Sensor as Sensor,
     Thing as Thing,
 )
 from .utils import importer
