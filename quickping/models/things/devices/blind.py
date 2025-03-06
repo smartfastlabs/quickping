@@ -14,3 +14,9 @@ class Blind(Device):
     @property
     def is_closed(self) -> "Comparer":
         return self.state == "closed"
+
+    async def open(self) -> None:
+        await self.call_service("open_cover")
+
+    async def close(self) -> None:
+        await self.call_service("close_cover")

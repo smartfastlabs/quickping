@@ -177,3 +177,17 @@ class Clock(FauxThing):
         if end_time is not None:
             new_clock.end_time = end_time
         return new_clock
+
+    @property
+    def is_weekend(self) -> "CallableComparer":
+        return CallableComparer(
+            lambda: datetime.now().weekday() in [self.SATURDAY, self.SUNDAY],
+            things=[Clock("clock.daily")],
+        )
+
+    @property
+    def is_weekday(self) -> "CallableComparer":
+        return CallableComparer(
+            lambda: datetime.now().weekday() in range(self.MONDAY, self.FRIDAY),
+            things=[Clock("clock.daily")],
+        )
