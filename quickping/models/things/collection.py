@@ -55,3 +55,7 @@ class Collection(Thing):
             if isinstance(value, Collection | Thing):
                 value.load(self.quickping)
         return self
+
+    def all_things(self) -> list[Thing]:
+        # TODO: Make this recursive to include all things in subcollections
+        return list(self.things.values())

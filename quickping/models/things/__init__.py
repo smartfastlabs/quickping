@@ -10,4 +10,8 @@ from .devices.sensors import (
     Sensor as Sensor,
 )
 from .faux import FauxThing as FauxThing
+from .sun import Sun as Sun
+from .switch import Switch as Switch
 from .thing import Thing as Thing
+from .tv import TV as TV
+from .weather import Weather as Weather

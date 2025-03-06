@@ -14,6 +14,7 @@ from .decorators.route import route as route
 from .decorators.schedule import run_at as run_at, run_every as run_every
 from .decorators.when import when as when
 from .models import (
+    TV as TV,
     Attribute as Attribute,
     Attributes as Attributes,
     BinarySensor as BinarySensor,
@@ -27,7 +28,10 @@ from .models import (
     Light as Light,
     MotionSensor as MotionSensor,
     Sensor as Sensor,
+    Sun as Sun,
+    Switch as Switch,
     Thing as Thing,
+    Weather as Weather,
 )
 from .utils import importer
 

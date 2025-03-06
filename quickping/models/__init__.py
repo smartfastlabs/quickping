@@ -2,6 +2,7 @@
 from .change import Change as Change
 from .event import Event as Event
 from .things import (
+    TV as TV,
     Attribute as Attribute,
     Attributes as Attributes,
     BinarySensor as BinarySensor,
@@ -13,5 +14,8 @@ from .things import (
     Light as Light,
     MotionSensor as MotionSensor,
     Sensor as Sensor,
+    Sun as Sun,
+    Switch as Switch,
     Thing as Thing,
+    Weather as Weather,
 )
