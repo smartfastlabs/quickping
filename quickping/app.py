@@ -18,6 +18,7 @@ from .listeners import (
     EventListener,
     HTTPListener,
     IdleListener,
+    SceneListener,
     ScheduleListener,
 )
 from .models import Change, Collection, Event, FauxThing, Thing
@@ -39,8 +40,14 @@ class QuickpingApp:
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
     schedule_listeners: list["ScheduleListener"]
+    scene_listeners: list["SceneListener"]
     listeners: list[
-        EventListener | HTTPListener | IdleListener | ChangeListener | ScheduleListener
+        EventListener
+        | HTTPListener
+        | IdleListener
+        | ChangeListener
+        | ScheduleListener
+        | SceneListener
     ]
     faux_things: list[type]
     handler_path: str
@@ -54,6 +61,7 @@ class QuickpingApp:
         idle_listeners: list["IdleListener"] | None = None,
         http_listeners: list["HTTPListener"] | None = None,
         schedule_listeners: list["ScheduleListener"] | None = None,
+        scene_listeners: list["SceneListener"] | None = None,
         app_daemon: Optional["Hass"] = None,
     ):
         self.change_listeners = change_listeners or []
@@ -61,18 +69,20 @@ class QuickpingApp:
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
         self.schedule_listeners = schedule_listeners or []
+        self.scene_listeners = scene_listeners or []
         self.listeners = (
             self.change_listeners
             + self.idle_listeners
             + self.http_listeners
             + self.event_listeners
             + self.schedule_listeners
+            + self.scene_listeners
         )
         self.handler_path = handler_path
         self.faux_things = []
         self.app_daemon = app_daemon
 
-    def load_handlers(self) -> None:
+    async def load_handlers(self) -> None:
         modules: dict = load_directory(self.handler_path)
 
         for thing in list(Thing.instances.values()):
@@ -90,6 +100,7 @@ class QuickpingApp:
                 | IdleListener
                 | ChangeListener
                 | ScheduleListener
+                | SceneListener
             ] = []
 
             if things := collector.all_things():
@@ -116,6 +127,22 @@ class QuickpingApp:
                 )
                 self.event_listeners.append(event_listener)
                 listeners.append(event_listener)
+
+            if collector.scene_id:
+                scene_listener: SceneListener = SceneListener(
+                    quickping=self,
+                    **listener_args,
+                )
+                print("Creating scene", collector.scene_id)
+                if self.app_daemon:
+                    await self.app_daemon.call_service(
+                        "scene/create",
+                        scene_id=collector.scene_id,
+                        entities={f"scene.{collector.scene_id}": "on"},
+                        return_result=True,
+                    )
+                self.scene_listeners.append(scene_listener)
+                self.listeners.append(scene_listener)
 
             if collector.route:
                 http_listener: HTTPListener = HTTPListener(
@@ -201,6 +228,22 @@ class QuickpingApp:
                         ),
                     ),
                 )
+
+        if (
+            event.name == "call_service"
+            and event.data["domain"] == "scene"
+            and event.data["service"] == "turn_on"
+        ):
+            for scene_listener in self.scene_listeners:
+                if scene_listener.wants_event(event):
+                    futures.append(
+                        scene_listener.run(
+                            *self.build_args(
+                                scene_listener.func,
+                                event=event,
+                            ),
+                        ),
+                    )
 
         await asyncio.gather(*futures)
 

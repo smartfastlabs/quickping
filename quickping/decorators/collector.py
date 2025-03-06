@@ -23,6 +23,7 @@ class Collector:
     idle_time: timedelta | None = None
     route: str | None = None
     run_on_interval: timedelta | None = None
+    scene_id: str | None = None
     instances: ClassVar[list["Collector"]] = DEFAULT_COLLECTORS
 
     def __init__(self, func: Callable, **kwargs: Any):
@@ -62,6 +63,10 @@ class Collector:
             "run_on_interval": self.run_on_interval,
             "event_filter": self.event_filter,
             "event_payload_filter": self.event_payload_filter,
+            "scene_id": self.scene_id,
+            "days": self.days,
+            "after_time": self.after_time,
+            "before_time": self.before_time,
         }
 
     def all_things(self) -> list["Thing"]:

@@ -18,7 +18,7 @@ class AppDaemonApp(hass.Hass):
             self.handler_path,
             app_daemon=self,
         )
-        self.quickping.load_handlers()
+        await self.quickping.load_handlers()
         self.listen_event(self.on_event)
         self.quickping_task = asyncio.create_task(self.quickping.run())
 
