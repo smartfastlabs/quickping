@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
-from quickping.utils.comparer import CallableComparer, ValueComparer
+from quickping.utils.comparer import CallableComparer, Comparer, ValueComparer
 from quickping.utils.meta import AttributesMeta
 
 from .base import Base
@@ -17,6 +17,12 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     entity: Optional["Entity"] = None
     instances: ClassVar[dict[str, "Thing"]] = {}  # type: ignore
     state: ValueComparer
+
+    _on_state: ClassVar[str] = "on"
+    _off_state: ClassVar[str] = "off"
+
+    _off_service: ClassVar[str] = "turn_off"
+    _on_service: ClassVar[str] = "turn_on"
 
     def __init__(
         self,
@@ -70,10 +76,16 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
             await self.entity.call_service(service, **kwargs)
 
     async def turn_on(self) -> None:
-        await self.call_service("turn_on")
+        try:
+            await self.call_service(self._on_service)
+        except Exception as e:
+            print(f"Error turning on {self}: {e}")
 
     async def turn_off(self) -> None:
-        await self.call_service("turn_off")
+        try:
+            await self.call_service(self._off_service)
+        except Exception as e:
+            print(f"Error turning off {self}: {e}")
 
     async def toggle(self) -> None:
         if self.entity:
@@ -87,12 +99,12 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         return self
 
     @property
-    def is_on(self) -> CallableComparer:
-        return self.state == "on"
+    def is_on(self) -> Comparer:
+        return self.state == self._on_state
 
     @property
-    def is_off(self) -> CallableComparer:
-        return self.state == "off"
+    def is_off(self) -> Comparer:
+        return self.state == self._off_state
 
     def is_(
         self,

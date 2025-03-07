@@ -7,6 +7,12 @@ from .device import Device
 
 
 class Blind(Device):
+    _on_state = "open"
+    _off_state = "closed"
+
+    _on_service = "open_cover"
+    _off_service = "close_cover"
+
     @property
     def is_open(self) -> "Comparer":
         return self.state == "open"

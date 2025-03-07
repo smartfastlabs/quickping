@@ -1,4 +1,7 @@
+import asyncio
 from typing import Any, Optional
+
+from quickping.utils.comparer import AndComparer, Comparer
 
 from .thing import Thing
 
@@ -51,11 +54,48 @@ class Collection(Thing):
                 self.things[key] = thing
 
         self.things = {}
-        for _key, value in self.__dict__.items():
+
+        temp: dict[str, Any] = {}
+        for key, value in self.__class__.__dict__.items():
+            if key == "instance":
+                continue
+            if isinstance(value, Thing):
+                temp[key] = value
+
+        for key, value in self.__dict__.items():
+            if isinstance(value, Collection | Thing):
+                temp[key] = value
+
+        for _key, value in temp.items():
             if isinstance(value, Collection | Thing):
                 value.load(self.quickping)
+                self.things[_key] = value
         return self
 
     def all_things(self) -> list[Thing]:
-        # TODO: Make this recursive to include all things in subcollections
-        return list(self.things.values())
+        things: dict[str, Thing] = {}
+        for id, thing in self.things.items():
+            if isinstance(thing, Collection):
+                for subthing in thing.all_things():
+                    things[subthing.id] = subthing
+            else:
+                things[id] = thing
+        return list(things.values())
+
+    async def turn_on(self, *args: Any, **kwargs: Any) -> None:
+        await asyncio.gather(*(t.turn_on(*args, **kwargs) for t in self.all_things()))
+
+    async def turn_off(self, *args: Any, **kwargs: Any) -> None:
+        await asyncio.gather(*(t.turn_off(*args, **kwargs) for t in self.all_things()))
+
+    @property
+    def is_on(self) -> Comparer:
+        return AndComparer(
+            comparers=[t.is_on for t in self.all_things()],
+        )
+
+    @property
+    def is_off(self) -> Comparer:
+        return AndComparer(
+            comparers=[t.is_off for t in self.all_things()],
+        )

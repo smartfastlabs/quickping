@@ -1,4 +1,6 @@
+import asyncio
 import datetime
+import inspect
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -66,8 +68,13 @@ class BaseListener(Collector):
         ):
             return False
 
-        return all(self.whens)
+        return any(self.whens) if self.whens else True
 
     async def run(self, *args: Any, **kwargs: Any) -> Any:
         self.last_run = datetime.datetime.now()
-        return await self.func(*args, **kwargs)
+        result: Any = await self.func(*args, **kwargs)
+
+        if result and isinstance(result, tuple) and inspect.isawaitable(result[0]):
+            return await asyncio.gather(*result)
+
+        return result
