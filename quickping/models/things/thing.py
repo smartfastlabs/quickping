@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
-from quickping.utils.comparer import CallableComparer, Comparer, ValueComparer
+from quickping.utils.comparer import Comparer, ValueComparer
 from quickping.utils.meta import AttributesMeta
 
 from .base import Base
@@ -106,26 +106,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     def is_off(self) -> Comparer:
         return self.state == self._off_state
 
-    def is_(
-        self,
-        state: str | None = None,
-        **kwargs: Any,
-    ) -> CallableComparer:
-        def check() -> bool:
-            if state is not None and self._state != state:
-                return False
-
-            for key, expected_value in kwargs.items():
-                if not self.has(key):
-                    return False
-
-                if getattr(self, key) != expected_value:
-                    return False
-
-            return True
-
-        return CallableComparer(check, things=[self])
-
     def listen_state(self, func: Callable) -> None:
         if self.entity:
             self.entity.listen_state(func)
@@ -133,9 +113,5 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
             raise ValueError("Entity not set on Thing")
 
     @classmethod
-    def get(cls, id: str) -> Optional["Thing"]:
-        thing: SingletonPerId | None = cls.instances.get(id, None)
-        if isinstance(thing, Thing):
-            return thing
-
-        return None
+    def get(cls, _id: str) -> Optional["Thing"]:
+        return cls.instances.get(_id, None)
