@@ -133,14 +133,17 @@ class QuickpingApp:
                     quickping=self,
                     **listener_args,
                 )
-                print("Creating scene", collector.scene_id)
                 if self.app_daemon:
-                    await self.app_daemon.call_service(
-                        "scene/create",
-                        scene_id=collector.scene_id,
-                        entities={f"scene.{collector.scene_id}": "on"},
-                        return_result=True,
-                    )
+                    if not self.get_entity(collector.scene_id):
+                        print("Creating scene", collector.scene_id)
+                        await self.app_daemon.call_service(
+                            "scene/create",
+                            scene_id=collector.scene_id.split("scene.", 1)[-1],
+                            entities={collector.scene_id: "on"},
+                            return_result=True,
+                        )
+                    else:
+                        print("Scene exists", collector.scene_id)
                 self.scene_listeners.append(scene_listener)
                 self.listeners.append(scene_listener)
 
