@@ -3,7 +3,15 @@ from typing import Annotated
 import pytest
 from dobles import InstanceDouble
 
-from quickping import Attribute, Attributes, Collection, Device, Light, QuickpingApp
+from quickping import (
+    Attribute,
+    Attributes,
+    Collection,
+    Device,
+    FancyLight,
+    Light,
+    QuickpingApp,
+)
 
 
 @pytest.fixture
@@ -35,7 +43,7 @@ def TestComplexThing():
 
 @pytest.fixture
 def test_light(test_light_entity):
-    return Light("light.test_light", entity=test_light_entity)
+    return FancyLight("light.test_light", entity=test_light_entity)
 
 
 @pytest.fixture

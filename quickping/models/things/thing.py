@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
 class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     entity: Optional["Entity"] = None
     instances: ClassVar[dict[str, "Thing"]] = {}  # type: ignore
+
     state: ValueComparer
 
     _on_state: ClassVar[str] = "on"
@@ -45,11 +45,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     def _state(self) -> str:
         return self.entity.state if self.entity else "NA"
 
-    def __getattr__(self, name: str) -> Any:
-        if self.entity is None:
-            return None
-        return getattr(self.entity, name)
-
     def get_attribute(self, name: str) -> Any:
         name = name.lstrip("_")
         if self.entity is None:
@@ -63,13 +58,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
         print(f"Attribute {name} not found on {self.entity}")
         return None
-
-    def has(self, name: str) -> bool:
-        if hasattr(self, name):
-            return True
-        if self.entity is None:
-            return False
-        return hasattr(self.entity, name)
 
     async def call_service(self, service: str, **kwargs: Any) -> None:
         if self.entity:
@@ -105,12 +93,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     @property
     def is_off(self) -> Comparer:
         return self.state == self._off_state
-
-    def listen_state(self, func: Callable) -> None:
-        if self.entity:
-            self.entity.listen_state(func)
-        else:
-            raise ValueError("Entity not set on Thing")
 
     @classmethod
     def get(cls, _id: str) -> Optional["Thing"]:

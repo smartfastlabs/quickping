@@ -10,6 +10,7 @@ from .things import (
     Clock as Clock,
     Collection as Collection,
     Device as Device,
+    FancyLight as FancyLight,
     FauxThing as FauxThing,
     Light as Light,
     MotionSensor as MotionSensor,

@@ -1,21 +1,15 @@
 from quickping.utils.comparer import Comparer
 
 
-def test_is(test_light):
-    assert test_light.is_("on")
-    assert not test_light.is_("off")
+def test_attribute_equality(test_light):
+    assert test_light.is_on
+    assert not test_light.is_off
 
-    assert test_light.is_(state="on")
-    assert not test_light.is_(state="off")
+    assert test_light.staet == "on"
+    assert not test_light.state == "off"
 
-    assert bool(test_light.is_(brightness=255))
-    assert not test_light.is_(brightness=0)
-
-    assert test_light.is_("on", brightness=255)
-    assert not test_light.is_("off", brightness=255)
-    assert not test_light.is_("on", brightness=0)
-    assert not test_light.is_("off", brightness=0)
-    assert test_light.is_(state="on", brightness=255)
+    assert test_light.brighness == 255
+    assert not test_light.brightness == 0
 
 
 def test_attributes(TestComplexThing, test_quickping):

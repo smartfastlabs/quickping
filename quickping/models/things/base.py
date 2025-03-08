@@ -1,5 +1,5 @@
 from inspect import isclass
-from typing import TYPE_CHECKING, Optional, Self
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from .attribute import Attribute, Attributes
 
@@ -11,6 +11,8 @@ class Base:
     id: str
     quickping: Optional["QuickpingApp"] = None
 
+    properties: dict[str, Any]
+
     def __init__(
         self,
         _id: str,
@@ -18,6 +20,7 @@ class Base:
     ):
         self.id = _id
         self.quickping = quickping
+        self.properties = {}
 
         for name, value in self.__annotations__.items():
             if isclass(value) and issubclass(value, Attributes):

@@ -25,6 +25,7 @@ from .models import (
     Collection as Collection,
     Device as Device,
     Event as Event,
+    FancyLight as FancyLight,
     FauxThing as FauxThing,
     Light as Light,
     MotionSensor as MotionSensor,
