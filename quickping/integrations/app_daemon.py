@@ -55,8 +55,9 @@ class AppDaemonApp(hass.Hass):
                 continue
 
             self.tracked[thing.id] = thing
-            if thing.entity:
-                thing.entity.listen_state(
+            entity = self.get_entity(thing.id)
+            if entity:
+                entity.listen_state(
                     self.on_state,
                     thing_id=thing.id,
                 )
@@ -78,5 +79,4 @@ class AppDaemonApp(hass.Hass):
             new=new,
         )
 
-        print(f"State change: {entity}.{attribute} {old} -> {new}")
         await self.quickping.on_change(change)
