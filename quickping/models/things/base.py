@@ -26,15 +26,10 @@ class Base:
             if isclass(value) and issubclass(value, Attributes):
                 kwargs: dict[str, Attribute] = {}
 
-                for attr_name, attr_anno in value.__annotations__.items():
-                    value_type: type | None = None
-                    if hasattr(attr_anno, "__metadata__"):
-                        value_type = attr_anno.__metadata__[0]
-
+                for attr_name in value.__annotations__:
                     kwargs[attr_name] = Attribute(
                         name,
                         thing=self,  # type: ignore
-                        value_type=value_type,
                     )
                 setattr(self, name, value(thing=self, **kwargs))  # type: ignore
             elif hasattr(value, "__origin__") and hasattr(value, "__metadata__"):
@@ -48,7 +43,6 @@ class Base:
                         value.__origin__(
                             name,
                             thing=self,
-                            value_type=value.__metadata__[0],
                         ),
                     )
                 elif isinstance(value.__metadata__[0], value.__origin__):

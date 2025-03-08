@@ -22,6 +22,7 @@ from .listeners import (
     ScheduleListener,
 )
 from .models import Change, Collection, Event, FauxThing, Thing
+from .utils.comparer import ValueComparer
 from .utils.importer import get_all_subclasses, load_directory
 
 
@@ -170,6 +171,7 @@ class QuickpingApp:
             faux_thing.start(self)  # type: ignore
 
     async def on_change(self, change: Change) -> None:
+        self._track_state_change(change)
         futures = []
         for listener in self.change_listeners:
             if listener.wants_change(change):
@@ -187,6 +189,17 @@ class QuickpingApp:
                 futures.append(idle_listener.on_change())
 
         await asyncio.gather(*futures)
+
+    def _track_state_change(self, change: Change) -> None:
+        if change.thing_id not in Thing.instances:
+            return
+
+        thing: Thing = Thing.instances[change.thing_id]
+        attr: Any = getattr(thing, change.attribute, None)
+        if attr and isinstance(attr, ValueComparer):
+            attr.value = change.new
+            return
+        thing.properties[change.attribute] = change.new
 
     async def run(self) -> None:
         try:
