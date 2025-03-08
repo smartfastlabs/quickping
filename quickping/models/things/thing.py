@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
+from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 from quickping.models.singletons import SingletonPerId
 from quickping.utils.comparer import Comparer, ValueComparer
@@ -7,13 +7,10 @@ from quickping.utils.meta import AttributesMeta
 from .base import Base
 
 if TYPE_CHECKING:
-    from appdaemon.entity import Entity  # type: ignore
-
     from quickping.app import QuickpingApp
 
 
 class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
-    entity: Optional["Entity"] = None
     instances: ClassVar[dict[str, "Thing"]] = {}  # type: ignore
 
     state: ValueComparer
@@ -27,41 +24,22 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     def __init__(
         self,
         _id: str,
-        entity: Optional["Entity"] = None,
         quickping: Optional["QuickpingApp"] = None,
     ):
-        if entity is None and quickping is not None:
-            self.entity = quickping.get_entity(_id)
-        else:
-            self.entity = entity
-
         self.state = ValueComparer(
-            "_state",
             thing=self,
         )
         super().__init__(_id, quickping)
 
-    @property
-    def _state(self) -> str:
-        return self.entity.state if self.entity else "NA"
-
-    def get_attribute(self, name: str) -> Any:
-        name = name.lstrip("_")
-        if self.entity is None:
-            print(f"Entity not set on {self}")
-            return None
-
-        if hasattr(self.entity, name):
-            return getattr(self.entity, name)
-        if hasattr(self.entity, "attributes") and hasattr(self.entity.attribute, name):
-            return getattr(self.entity.attribute, name)
-
-        print(f"Attribute {name} not found on {self.entity}")
-        return None
-
     async def call_service(self, service: str, **kwargs: Any) -> None:
-        if self.entity:
-            await self.entity.call_service(service, **kwargs)
+        if not self.quickping:
+            raise ValueError("QuickpingApp not set on Thing")
+
+        await self.quickping.call_service(
+            service,
+            thing_id=self.id,
+            **kwargs,
+        )
 
     async def turn_on(self) -> None:
         try:
@@ -76,15 +54,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
             print(f"Error turning off {self}: {e}")
 
     async def toggle(self) -> None:
-        if self.entity:
-            await self.entity.toggle()
-
-    def on_load(self) -> Self:
-        if not self.quickping:
-            raise ValueError("QuickpingApp not set on Thing")
-
-        self.entity = self.quickping.get_entity(self.id)
-        return self
+        await self.call_service("toggle")
 
     @property
     def is_on(self) -> Comparer:

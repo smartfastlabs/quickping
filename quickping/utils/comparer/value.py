@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from .callable import CallableComparer
 
@@ -7,17 +7,14 @@ if TYPE_CHECKING:
 
 
 class ValueComparer:
-    name: str
-    thing: "Thing" | None = None
+    thing: Optional["Thing"] = None
     value: Any
 
     def __init__(
         self,
-        name: str,
         value: Any = None,
-        thing: "Thing" | None = None,
+        thing: Optional["Thing"] = None,
     ):
-        self.name = name
         self.value = value
         self.thing = thing
 

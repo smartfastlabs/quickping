@@ -28,32 +28,29 @@ class Base:
 
                 for attr_name in value.__annotations__:
                     kwargs[attr_name] = Attribute(
-                        name,
                         thing=self,  # type: ignore
                     )
                 setattr(self, name, value(thing=self, **kwargs))  # type: ignore
             elif hasattr(value, "__origin__") and hasattr(value, "__metadata__"):
                 # TODO: THIS CLAUSE IS A HACK, we should be
                 # I KNOW for sure this can be an Attribute
-                entity = quickping.get_entity(self.id) if quickping else None
                 if issubclass(value.__origin__, Attribute):
                     setattr(
                         self,
                         name,
                         value.__origin__(
-                            name,
                             thing=self,
                         ),
                     )
                 elif isinstance(value.__metadata__[0], value.__origin__):
                     setattr(self, name, value.__metadata__[0])
                 elif isclass(value.__origin__):
+                    # TODO: I'm not sure what this brnach is for
                     setattr(
                         self,
                         name,
                         value.__origin__(
                             value.__metadata__[0],
-                            entity=entity,
                             quickping=quickping,
                         ),
                     )
@@ -69,8 +66,6 @@ class Base:
 
         for name, _value in self.__annotations__.items():
             attr = getattr(self, name)
-            if hasattr(attr, "entity") and attr.entity is None:
-                attr.entity = qp.get_entity(self.id)
             if hasattr(attr, "load"):
                 if isinstance(attr, Attributes):
                     attr.load(qp, thing=self)  # type: ignore

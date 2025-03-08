@@ -191,10 +191,10 @@ class QuickpingApp:
         await asyncio.gather(*futures)
 
     def _track_state_change(self, change: Change) -> None:
-        if change.thing_id not in Thing.instances:
+        thing: Thing | None = Thing.get(change.thing_id)
+        if not thing:
             return
 
-        thing: Thing = Thing.instances[change.thing_id]
         attr: Any = getattr(thing, change.attribute, None)
         if attr and isinstance(attr, ValueComparer):
             attr.value = change.new
@@ -262,6 +262,22 @@ class QuickpingApp:
                     )
 
         await asyncio.gather(*futures)
+
+    async def call_service(
+        self,
+        service: str,
+        thing_id: str,
+        **kwargs: Any,
+    ) -> None:
+        if not self.app_daemon:
+            return
+
+        entity: Optional["Entity"] = self.get_entity(thing_id)
+        if not entity:
+            print(f"Entity {thing_id} not found")
+            return
+
+        await entity.call_service(service, **kwargs)
 
     def build_args(self, func: Callable, **context: Any) -> list[Any]:
         sig = inspect.signature(func)

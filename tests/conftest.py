@@ -43,7 +43,10 @@ def TestComplexThing():
 
 @pytest.fixture
 def test_light(test_light_entity):
-    return FancyLight("light.test_light", entity=test_light_entity)
+    result: FancyLight = FancyLight("light.test_light")
+    result.state.value = "on"
+    result.brightness.value = 255
+    return result
 
 
 @pytest.fixture
