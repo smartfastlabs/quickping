@@ -54,7 +54,6 @@ def load_directory_old(path: str) -> dict[str, Any]:
 
 
 def load_directory(path: str) -> dict[str, Any]:
-    importlib.invalidate_caches()
     modules = {
         "listeners": listeners,
         "Collector": Collector,

@@ -64,6 +64,7 @@ class ValueComparer:
         return result
 
     def set_value(self, value: Any) -> None:
+        # TODO: FIGURE OUT IF WE NEED TO TRACK CHILDREN
         print("Setting value to: ", value, id(self))
         self.value = value
         for child in self.children:
