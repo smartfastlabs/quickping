@@ -19,6 +19,8 @@ class Attributes(metaclass=AttributesMeta):
         **kwargs: Attribute,
     ):
         for name, anno in self.__annotations__.items():
+            if name == "state":
+                continue
             if name in kwargs:
                 setattr(self, name, kwargs[name])
             else:

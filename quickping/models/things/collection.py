@@ -40,6 +40,8 @@ class Collection(Thing):
             raise ValueError("QuickpingApp not set on Collection")
 
         for key, anno in self.__annotations__.items():
+            if key == "state":
+                continue
             thing: Thing | None = None
             if not hasattr(anno, "__origin__"):
                 if not getattr(self, key):

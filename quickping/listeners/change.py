@@ -28,8 +28,13 @@ class ChangeListener(BaseListener):
         await self.func(*args)
 
     def wants_change(self, change: Change) -> bool:
-        print("CHANGE", change.thing_id, change.attribute, change.old, change.new)
-        if not self.is_active():
+        if not any(thing.id == change.thing_id for thing in self.things):
             return False
 
-        return any(thing.id == change.thing_id for thing in self.things)
+        if change.thing_id == "light.office_lights":
+            print(
+                "FOUND THING",
+                self.func.__name__,
+                [(id(t), id(t.state), t.state.value) for t in self.things],
+            )
+        return self.is_active()

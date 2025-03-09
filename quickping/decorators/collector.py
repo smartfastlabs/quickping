@@ -73,6 +73,7 @@ class Collector:
         things: dict[str, "Thing"] = {}
         for thing in self.things:
             things[thing.id] = thing
+
         for when in self.whens:
             for thing in when.things:
                 things[thing.id] = thing

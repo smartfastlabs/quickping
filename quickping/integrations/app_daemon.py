@@ -5,7 +5,7 @@ from typing import Any
 
 import appdaemon.plugins.hass.hassapi as hass  # type: ignore
 
-from quickping import Change, Event, Thing
+from quickping import Change, Event, FauxThing, Thing
 from quickping.app import QuickpingApp
 
 
@@ -63,9 +63,10 @@ class AppDaemonApp(hass.Hass):
             if not thing.quickping:
                 thing.load(self.quickping)
 
-            if not hasattr(thing, "entity"):
+            if isinstance(thing, FauxThing) or not isinstance(thing, Thing):
                 continue
 
+            print(f"Tracking {thing.id}")
             self.tracked[thing.id] = thing
             entity = self.get_entity(thing.id)
             if entity:

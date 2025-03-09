@@ -47,7 +47,11 @@ class Comparer:
         return result
 
     def clone(self) -> "Comparer":
-        return self.__class__(
+        result = self.__class__(
             comparers=self.comparers,
             things=self._things,
         )
+        if hasattr(self, "children"):
+            self.children.append(result)
+
+        return result

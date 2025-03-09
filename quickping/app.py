@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 import inspect
 
-from .decorators.collector import Collector
 from .listeners import (
     ChangeListener,
     EventListener,
@@ -54,6 +53,7 @@ class QuickpingApp:
     ]
     faux_things: list[type]
     app_daemon: Optional["Hass"]
+    handlers: dict[str, Any]
 
     def __init__(
         self,
@@ -65,6 +65,7 @@ class QuickpingApp:
         scene_listeners: list["SceneListener"] | None = None,
         app_daemon: Optional["Hass"] = None,
     ):
+        self.handlers = {}
         self.change_listeners = change_listeners or []
         self.idle_listeners = idle_listeners or []
         self.http_listeners = http_listeners or []
@@ -83,13 +84,15 @@ class QuickpingApp:
         self.app_daemon = app_daemon
 
     async def load_handlers(self, path: str | pathlib.Path) -> None:
-        load_directory(str(path))
+        self.handlers = load_directory(str(path))
 
-        for thing in list(Thing.instances.values()):
+        for thing in list(self.handlers["Thing"].instances.values()):
+            if thing.id == "light.office_lights":
+                print("LOADED THING", id(thing), id(thing.state))
             if hasattr(thing, "load"):
                 thing.load(self)
 
-        for collector in Collector.instances:
+        for collector in self.handlers["Collector"].instances:
             if collector.disabled:
                 continue
 
@@ -170,10 +173,21 @@ class QuickpingApp:
             faux_thing.start(self)  # type: ignore
 
     async def on_change(self, change: Change) -> None:
+        # print("CHANGE", change.attribute, change.old, "->", change.new)
         self._track_state_change(change)
         futures = []
         for listener in self.change_listeners:
+            # if listener.func.__name__ == "watch_lights_on":
+            # print(
+            #     "HERE",
+            #     listener.func.__name__,
+            #     change.thing_id,
+            #     [t.id for t in listener.things],
+            #     listener.wants_change(change),
+            #     listener.is_active(),
+            # )
             if listener.wants_change(change):
+                # print("RUNNING CHANGE HANDLER:", listener.func.__name__)
                 futures.append(
                     listener.run(
                         *self.build_args(
@@ -190,13 +204,13 @@ class QuickpingApp:
         await asyncio.gather(*futures)
 
     def _track_state_change(self, change: Change) -> None:
-        thing: Thing | None = Thing.get(change.thing_id)
+        thing: Thing | None = self.get_thing(change.thing_id)
         if not thing:
             return
 
         attr: Any = getattr(thing, change.attribute, None)
         if attr and isinstance(attr, ValueComparer):
-            attr.value = change.new
+            attr.set_value(change.new)
             return
         thing.properties[change.attribute] = change.new
 
@@ -235,6 +249,7 @@ class QuickpingApp:
         futures = []
         for listener in self.event_listeners:
             if listener.wants_event(event):
+                print("RUNNING EVENT HANDLER:", listener.func.__name__)
                 futures.append(
                     listener.run(
                         *self.build_args(
@@ -308,7 +323,6 @@ class QuickpingApp:
             elif name == "quickping":
                 args.append(self)
             else:
-                print(name, param, type(param))
                 args.append("MISSING")
 
         return args
@@ -323,4 +337,4 @@ class QuickpingApp:
         return self.app_daemon.get_entity(entity_id)
 
     def get_thing(self, thing_id: str) -> Thing | None:
-        return Thing.get(thing_id)
+        return self.handlers["Thing"].get(thing_id)  # type: ignore

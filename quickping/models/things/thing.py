@@ -58,6 +58,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
     @property
     def is_on(self) -> Comparer:
+        print("RUN IS_ON", self._on_state)
         return self.state == self._on_state
 
     @property

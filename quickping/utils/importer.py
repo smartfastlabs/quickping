@@ -3,7 +3,7 @@ import os
 import sys
 from typing import Any
 
-from quickping import listeners
+from quickping import listeners, models
 from quickping.decorators.collector import Collector
 
 
@@ -32,6 +32,7 @@ def load_directory(path: str) -> dict[str, Any]:
     modules = {
         "listeners": listeners,
         "Collector": Collector,
+        "Thing": models.things.Thing,
     }
     listeners.clear()
     Collector.clear()
@@ -58,7 +59,6 @@ def load_file(module_name: str, path: str) -> Any:
         path,
     )
     module = importlib.util.module_from_spec(spec)  # type: ignore
-    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 

@@ -24,6 +24,8 @@ class Base:
 
         # TODO: cleanup, document, understand
         for name, value in self.__annotations__.items():
+            if name == "state":
+                continue
             if isclass(value) and issubclass(value, Attributes):
                 kwargs: dict[str, Attribute] = {}
 
@@ -66,6 +68,8 @@ class Base:
         self.quickping = qp
 
         for name, _value in self.__annotations__.items():
+            if name == "state":
+                continue
             attr = getattr(self, name)
             if hasattr(attr, "load"):
                 if isinstance(attr, Attributes):
