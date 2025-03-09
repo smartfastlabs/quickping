@@ -1,4 +1,6 @@
 import asyncio
+import pathlib
+from inspect import getfile
 from typing import Any
 
 import appdaemon.plugins.hass.hassapi as hass  # type: ignore
@@ -12,13 +14,23 @@ class AppDaemonApp(hass.Hass):
     tracked: dict[str, Thing]
     quickping_task: asyncio.Task | None
 
+    handler_path: str | None
+
     async def initialize(self) -> None:
         self.tracked = {}
         self.quickping = QuickpingApp(
-            self.handler_path,
             app_daemon=self,
         )
-        await self.quickping.load_handlers()
+        await self.quickping.load_handlers(
+            getattr(
+                self,
+                "handler_path",
+                pathlib.Path(
+                    getfile(self.__class__),
+                ).parent.resolve()
+                / "home",
+            )
+        )
         self.listen_event(self.on_event)
         self.quickping_task = asyncio.create_task(self.quickping.run())
 

@@ -10,9 +10,16 @@ if TYPE_CHECKING:
 class CallableComparer(Comparer):
     func: Callable
 
-    def __init__(self, func: Callable, things: list["Thing"] | None | Callable = None):
+    def __init__(
+        self,
+        func: Callable,
+        things: list["Thing"] | None | Callable = None,
+    ):
         super().__init__(things=things)
         self.func = func
 
     def __bool__(self) -> bool:
         return bool(self.func())
+
+    def clone(self) -> "CallableComparer":
+        return self.__class__(self.func, things=self._things)

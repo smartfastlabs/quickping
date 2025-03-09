@@ -35,6 +35,7 @@ class Collection(Thing):
         raise ValueError("Could not create instance of Collection")
 
     def on_load(self) -> "Collection":
+        # TODO: cleanup, document, understand
         if not self.quickping:
             raise ValueError("QuickpingApp not set on Collection")
 
@@ -74,12 +75,12 @@ class Collection(Thing):
 
     def all_things(self) -> list[Thing]:
         things: dict[str, Thing] = {}
-        for id, thing in self.things.items():
+        for thing in self.things.values():
             if isinstance(thing, Collection):
                 for subthing in thing.all_things():
-                    things[subthing.id] = subthing
+                    things[thing.id] = subthing
             else:
-                things[id] = thing
+                things[thing.id] = thing
         return list(things.values())
 
     async def turn_on(self, *args: Any, **kwargs: Any) -> None:

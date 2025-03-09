@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from quickping import Thing
@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 class Comparer:
     comparers: list["Comparer"]
     _things: list["Thing"] | Callable
-    owner: Optional["Thing"]
 
     def __init__(
         self,
@@ -19,8 +18,6 @@ class Comparer:
     ):
         self.comparers = comparers or []
         self._things = things or []
-        if things and not callable(things) and len(things) == 1:
-            self.owner = things[0]
 
     @property
     def things(self) -> list["Thing"]:
@@ -40,3 +37,17 @@ class Comparer:
         from .boolean import OrComparer
 
         return OrComparer(comparers=[self, other])
+
+    def __invert__(self) -> "Comparer":
+        return self.no_trigger()
+
+    def no_trigger(self) -> "Comparer":
+        result = self.clone()
+        result._things = []
+        return result
+
+    def clone(self) -> "Comparer":
+        return self.__class__(
+            comparers=self.comparers,
+            things=self._things,
+        )

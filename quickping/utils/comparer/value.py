@@ -53,3 +53,6 @@ class ValueComparer:
             lambda: self.value >= other,
             things=self.things,
         )
+
+    def clone(self) -> "ValueComparer":
+        return self.__class__(self.value, thing=self.thing)

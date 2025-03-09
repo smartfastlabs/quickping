@@ -22,6 +22,7 @@ class Base:
         self.quickping = quickping
         self.properties = {}
 
+        # TODO: cleanup, document, understand
         for name, value in self.__annotations__.items():
             if isclass(value) and issubclass(value, Attributes):
                 kwargs: dict[str, Attribute] = {}

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Self
 
 from quickping.models.singletons import SingletonPerId
 from quickping.utils.comparer import Comparer, ValueComparer
@@ -67,3 +67,10 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     @classmethod
     def get(cls, _id: str) -> Optional["Thing"]:
         return cls.instances.get(_id, None)
+
+    def on_load(self) -> Self:
+        if not self.quickping:
+            raise ValueError("QuickpingApp not set on Thing")
+
+        self.entity = self.quickping.get_entity(self.id)
+        return self

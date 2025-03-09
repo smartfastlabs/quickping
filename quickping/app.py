@@ -1,4 +1,5 @@
 import asyncio
+import pathlib
 from collections.abc import Callable
 from inspect import isclass
 from typing import TYPE_CHECKING, Any, Optional
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 
 import inspect
 
+from .decorators.collector import Collector
 from .listeners import (
     ChangeListener,
     EventListener,
@@ -51,12 +53,10 @@ class QuickpingApp:
         | SceneListener
     ]
     faux_things: list[type]
-    handler_path: str
     app_daemon: Optional["Hass"]
 
     def __init__(
         self,
-        handler_path: str = "handlers",
         event_listeners: list["EventListener"] | None = None,
         change_listeners: list["ChangeListener"] | None = None,
         idle_listeners: list["IdleListener"] | None = None,
@@ -79,18 +79,17 @@ class QuickpingApp:
             + self.schedule_listeners
             + self.scene_listeners
         )
-        self.handler_path = handler_path
         self.faux_things = []
         self.app_daemon = app_daemon
 
-    async def load_handlers(self) -> None:
-        modules: dict = load_directory(self.handler_path)
+    async def load_handlers(self, path: str | pathlib.Path) -> None:
+        load_directory(str(path))
 
         for thing in list(Thing.instances.values()):
             if hasattr(thing, "load"):
                 thing.load(self)
 
-        for collector in modules["Collector"].instances:
+        for collector in Collector.instances:
             if collector.disabled:
                 continue
 
@@ -309,6 +308,7 @@ class QuickpingApp:
             elif name == "quickping":
                 args.append(self)
             else:
+                print(name, param, type(param))
                 args.append("MISSING")
 
         return args

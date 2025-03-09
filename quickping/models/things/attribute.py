@@ -22,6 +22,7 @@ class Attributes(metaclass=AttributesMeta):
             if name in kwargs:
                 setattr(self, name, kwargs[name])
             else:
+                # TODO: How do we know the args for anno?
                 setattr(
                     self,
                     name,

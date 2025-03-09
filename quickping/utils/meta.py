@@ -3,6 +3,7 @@ from inspect import isclass
 
 class AttributesMeta(type):
     def __new__(cls, class_name, bases, attrs):  # type: ignore
+        # TODO: Clean up, document, and understand this
         if "__annotations__" in attrs:
             for name, anno in list(attrs["__annotations__"].items()):
                 if name == "state":

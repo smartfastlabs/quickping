@@ -38,6 +38,10 @@ def load_directory(path: str) -> dict[str, Any]:
     unload_directory(path)
 
     for root, _, filenames in os.walk(path):
+        init_path = os.path.join(root, "__init__.py")
+        if not os.path.exists(init_path):
+            with open(init_path, "w"):
+                pass
         for filename in filenames:
             if filename.endswith(".py"):
                 module_name = fix_name(filename)
@@ -54,6 +58,7 @@ def load_file(module_name: str, path: str) -> Any:
         path,
     )
     module = importlib.util.module_from_spec(spec)  # type: ignore
+    sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
 
