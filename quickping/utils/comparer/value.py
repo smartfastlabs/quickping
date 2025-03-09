@@ -16,14 +16,6 @@ class ValueComparer:
         value: Any = None,
         thing: Optional["Thing"] = None,
     ):
-        print("Creating ValueComparer", id(self))
-        import inspect
-
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        for c in calframe:
-            print("package", c[0])
-
         self.children = []
         self.value = value
         self.thing = thing
@@ -35,16 +27,8 @@ class ValueComparer:
         return [self.thing]
 
     def __eq__(self, other: Any) -> CallableComparer:  # type: ignore
-        if self.thing and self.thing.id == "light.office_lights":
-            print("Comparing", id(self), self.value, other)
-
-        def func() -> Any:
-            if self.thing and self.thing.id == "light.office_lights":
-                print("TESTING EQUALITY", id(self.thing), id(self))
-            return self.value == other
-
         return CallableComparer(
-            func,
+            lambda: self.value == other,
             things=self.things,
         )
 

@@ -31,10 +31,4 @@ class ChangeListener(BaseListener):
         if not any(thing.id == change.thing_id for thing in self.things):
             return False
 
-        if change.thing_id == "light.office_lights":
-            print(
-                "FOUND THING",
-                self.func.__name__,
-                [(id(t), id(t.state), t.state.value) for t in self.things],
-            )
         return self.is_active()

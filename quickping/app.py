@@ -87,8 +87,6 @@ class QuickpingApp:
         self.handlers = load_directory(str(path))
 
         for thing in list(self.handlers["Thing"].instances.values()):
-            if thing.id == "light.office_lights":
-                print("LOADED THING", id(thing), id(thing.state))
             if hasattr(thing, "load"):
                 thing.load(self)
 
@@ -173,21 +171,10 @@ class QuickpingApp:
             faux_thing.start(self)  # type: ignore
 
     async def on_change(self, change: Change) -> None:
-        # print("CHANGE", change.attribute, change.old, "->", change.new)
         self._track_state_change(change)
         futures = []
         for listener in self.change_listeners:
-            # if listener.func.__name__ == "watch_lights_on":
-            # print(
-            #     "HERE",
-            #     listener.func.__name__,
-            #     change.thing_id,
-            #     [t.id for t in listener.things],
-            #     listener.wants_change(change),
-            #     listener.is_active(),
-            # )
             if listener.wants_change(change):
-                # print("RUNNING CHANGE HANDLER:", listener.func.__name__)
                 futures.append(
                     listener.run(
                         *self.build_args(
@@ -249,7 +236,6 @@ class QuickpingApp:
         futures = []
         for listener in self.event_listeners:
             if listener.wants_event(event):
-                print("RUNNING EVENT HANDLER:", listener.func.__name__)
                 futures.append(
                     listener.run(
                         *self.build_args(

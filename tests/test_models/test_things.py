@@ -5,10 +5,10 @@ def test_attribute_equality(test_light):
     assert test_light.is_on
     assert not test_light.is_off
 
-    assert test_light.staet == "on"
+    assert test_light.state == "on"
     assert not test_light.state == "off"
 
-    assert test_light.brighness == 255
+    assert test_light.brightness == 255
     assert not test_light.brightness == 0
 
 
@@ -25,7 +25,3 @@ def test_default_value(TestCollection):
 def test_state(test_light):
     assert test_light.state == "on"
     assert not test_light.state == "off"
-
-
-def test_attribute_equality(test_light):
-    assert test_light.brightness == 255

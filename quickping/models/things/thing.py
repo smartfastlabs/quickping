@@ -26,10 +26,12 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         _id: str,
         quickping: Optional["QuickpingApp"] = None,
     ):
-        self.state = ValueComparer(
-            thing=self,
-        )
         super().__init__(_id, quickping)
+        if not hasattr(self, "state"):
+            # TODO: FIGURE OUT WHY WE NEED THE GUARD
+            self.state = ValueComparer(
+                thing=self,
+            )
 
     async def call_service(self, service: str, **kwargs: Any) -> None:
         if not self.quickping:
@@ -58,7 +60,6 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
 
     @property
     def is_on(self) -> Comparer:
-        print("RUN IS_ON", self._on_state)
         return self.state == self._on_state
 
     @property

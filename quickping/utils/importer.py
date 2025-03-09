@@ -28,7 +28,7 @@ def unload_directory(
             del sys.modules[name]
 
 
-def load_directory(path: str) -> dict[str, Any]:
+def load_directory_old(path: str) -> dict[str, Any]:
     modules = {
         "listeners": listeners,
         "Collector": Collector,
@@ -49,6 +49,32 @@ def load_directory(path: str) -> dict[str, Any]:
                 modules[module_name] = load_file(
                     module_name, os.path.join(root, filename)
                 )
+
+    return modules
+
+
+def load_directory(path: str) -> dict[str, Any]:
+    importlib.invalidate_caches()
+    modules = {
+        "listeners": listeners,
+        "Collector": Collector,
+        "Thing": models.things.Thing,
+    }
+    package_name = os.path.basename(path)
+    listeners.clear()
+    Collector.clear()
+    unload_directory(path)
+
+    init_path = os.path.join(path, "__init__.py")
+    if not os.path.exists(path):
+        with open(init_path, "w"):
+            pass
+
+    spec = importlib.util.spec_from_file_location(package_name, init_path)  # type: ignore
+    package = importlib.util.module_from_spec(spec)  # type: ignore
+    sys.modules[package_name] = package
+    modules[package_name] = package
+    spec.loader.exec_module(package)
 
     return modules
 

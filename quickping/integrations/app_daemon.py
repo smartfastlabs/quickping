@@ -66,7 +66,6 @@ class AppDaemonApp(hass.Hass):
             if isinstance(thing, FauxThing) or not isinstance(thing, Thing):
                 continue
 
-            print(f"Tracking {thing.id}")
             self.tracked[thing.id] = thing
             entity = self.get_entity(thing.id)
             if entity:
