@@ -28,6 +28,7 @@ class ChangeListener(BaseListener):
         await self.func(*args)
 
     def wants_change(self, change: Change) -> bool:
+        print("CHANGE", change.thing_id, change.attribute, change.old, change.new)
         if not self.is_active():
             return False
 
