@@ -12,7 +12,6 @@ from .decorators.on_event import on_event as on_event
 from .decorators.on_idle import on_idle as on_idle
 from .decorators.route import route as route
 from .decorators.scene import scene as scene
-from .decorators.schedule import run_at as run_at, run_every as run_every
 from .decorators.when import when as when
 from .models import (
     TV as TV,

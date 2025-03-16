@@ -21,7 +21,6 @@ from .listeners import (
     HTTPListener,
     IdleListener,
     SceneListener,
-    ScheduleListener,
 )
 from .models import Change, Collection, Event, FauxThing, Thing
 from .utils.comparer import ValueComparer
@@ -42,17 +41,11 @@ class QuickpingApp:
     event_listeners: list["EventListener"]
     idle_listeners: list["IdleListener"]
     http_listeners: list["HTTPListener"]
-    schedule_listeners: list["ScheduleListener"]
     scene_listeners: list["SceneListener"]
     listeners: list[
-        EventListener
-        | HTTPListener
-        | IdleListener
-        | ChangeListener
-        | ScheduleListener
-        | SceneListener
+        EventListener | HTTPListener | IdleListener | ChangeListener | SceneListener
     ]
-    faux_things: list[type]
+    faux_things: list[FauxThing]
     app_daemon: Optional["Hass"]
     handlers: dict[str, Any]
 
@@ -62,7 +55,6 @@ class QuickpingApp:
         change_listeners: list["ChangeListener"] | None = None,
         idle_listeners: list["IdleListener"] | None = None,
         http_listeners: list["HTTPListener"] | None = None,
-        schedule_listeners: list["ScheduleListener"] | None = None,
         scene_listeners: list["SceneListener"] | None = None,
         app_daemon: Optional["Hass"] = None,
     ):
@@ -71,14 +63,12 @@ class QuickpingApp:
         self.idle_listeners = idle_listeners or []
         self.http_listeners = http_listeners or []
         self.event_listeners = event_listeners or []
-        self.schedule_listeners = schedule_listeners or []
         self.scene_listeners = scene_listeners or []
         self.listeners = (
             self.change_listeners
             + self.idle_listeners
             + self.http_listeners
             + self.event_listeners
-            + self.schedule_listeners
             + self.scene_listeners
         )
         self.faux_things = []
@@ -101,7 +91,6 @@ class QuickpingApp:
                 | HTTPListener
                 | IdleListener
                 | ChangeListener
-                | ScheduleListener
                 | SceneListener
             ] = []
 
@@ -157,19 +146,17 @@ class QuickpingApp:
                 self.http_listeners.append(http_listener)
                 listeners.append(http_listener)
 
-            if collector.run_on_interval is not None or collector.run_at:
-                schedule_listener: ScheduleListener = ScheduleListener(
-                    quickping=self,
-                    **listener_args,
-                )
-                self.schedule_listeners.append(schedule_listener)
-                listeners.append(schedule_listener)
-
             self.listeners.extend(listeners)
 
-        self.faux_things: list[type[FauxThing]] = get_all_subclasses(FauxThing)
+        self.faux_things = get_all_subclasses(FauxThing)  # type: ignore
         for faux_thing in self.faux_things:
-            faux_thing.start(self)  # type: ignore
+            faux_thing.start(self)
+
+    async def terminate(self) -> None:
+        print("Terminating QuickpingApp")
+        for thing in self.faux_things:
+            print("Stopping faux thing", thing.__class__.__name__)
+            thing.stop()
 
     async def on_change(self, change: Change) -> None:
         with self._track_state_change(change):
@@ -200,7 +187,7 @@ class QuickpingApp:
         attr: Any = getattr(thing, change.attribute, None)
         if attr and isinstance(attr, ValueComparer):
             attr.set_value(change.new)
-        else:
+        elif hasattr(thing, "properties"):
             thing.properties[change.attribute] = change.new
 
         try:
@@ -223,15 +210,6 @@ class QuickpingApp:
                             )
                         )
 
-                for schedule_listener in self.schedule_listeners:
-                    if schedule_listener.is_triggered():
-                        futures.append(
-                            schedule_listener.run(
-                                *self.build_args(
-                                    schedule_listener.func,
-                                )
-                            )
-                        )
                 try:
                     await asyncio.gather(asyncio.sleep(0.5), *futures)
                 except Exception as e:

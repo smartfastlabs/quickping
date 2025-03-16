@@ -41,6 +41,8 @@ class AppDaemonApp(hass.Hass):
                 await qp
             except asyncio.CancelledError:
                 print("Quickping task cancelled")
+        if quickping := getattr(self, "quickping", None):
+            await quickping.terminate()
 
     async def on_event(
         self,

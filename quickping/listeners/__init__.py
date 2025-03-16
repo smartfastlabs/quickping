@@ -4,7 +4,6 @@ from .event import EventListener
 from .http import HTTPListener
 from .idle import IdleListener
 from .scene import SceneListener
-from .schedule import ScheduleListener
 
 
 def clear() -> None:
@@ -12,5 +11,4 @@ def clear() -> None:
     ChangeListener.clear()
     EventListener.clear()
     HTTPListener.clear()
-    ScheduleListener.clear()
     SceneListener.clear()

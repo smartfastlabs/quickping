@@ -1,6 +1,5 @@
 import asyncio
-import uuid
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from typing import TYPE_CHECKING, Any, Optional
 
 from quickping.models.change import Change
@@ -28,6 +27,8 @@ class Clock(FauxThing):
     start_time: time | None = None
     end_time: time | None = None
     last_check: time | None = None
+    last_tick: datetime | None = None
+    tick_interval: timedelta | None = None
 
     def __init__(
         self,
@@ -35,11 +36,13 @@ class Clock(FauxThing):
         quickping: Optional["QuickpingApp"] = None,
         start_time: time | None = None,
         end_time: time | None = None,
+        tick_interval: timedelta | None = None,
     ) -> None:
         super().__init__(_id, quickping=quickping)
         self.start_time = start_time
         self.end_time = end_time
         self.last_check = datetime.now().time()
+        self.tick_interval = tick_interval
 
     @property
     def hour(self) -> Hour:
@@ -52,7 +55,7 @@ class Clock(FauxThing):
     @classmethod
     async def run(cls) -> None:
         last_time: time = datetime.now().time()
-        while True:
+        while cls._running:
             try:
                 new_time = datetime.now().time()
                 await cls.loop(last_time)
@@ -61,11 +64,12 @@ class Clock(FauxThing):
             except Exception as e:
                 print("CLOCK ERROR", e)
 
-            await asyncio.sleep(15)
+            await asyncio.sleep(1)
 
     @classmethod
     async def loop(cls, old_time: time) -> None:
-        new_time = datetime.now().time()
+        now = datetime.now()
+        new_time = now.time()
         if not cls.quickping:
             return
 
@@ -85,12 +89,29 @@ class Clock(FauxThing):
                         ),
                     ),
                 )
+            elif clock.tick_interval is not None and (
+                clock.last_tick is None
+                or (now - clock.last_tick) >= clock.tick_interval
+            ):
+                promises.append(
+                    cls.quickping.on_change(
+                        Change(
+                            thing_id=clock.id,
+                            old=clock.last_tick,
+                            new=now,
+                            attribute="tick",
+                        ),
+                    ),
+                )
+
+                clock.last_tick = now
             clock.last_check = new_time
 
         await asyncio.gather(*promises)
 
     def is_triggered(self) -> bool:
         active: bool = self._is_active()
+
         was_active: bool = self._is_active(
             now=self.last_check,
         )
@@ -127,9 +148,28 @@ class Clock(FauxThing):
 
     def __eq__(self, other: time) -> CallableComparer:  # type: ignore
         return self.between(
-            start=other,
-            end=other,
+            start=time(other.hour, other.minute),
+            end=time(other.hour, other.minute, 15),
         )
+
+    @classmethod
+    def tick(
+        cls,
+        dt: timedelta | None = None,
+        minutes: int = 0,
+        seconds: int = 0,
+        hours: int = 0,
+    ) -> CallableComparer:
+        interval = dt or timedelta(
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds,
+        )
+
+        return cls(
+            f"clock.tick.{interval}",
+            tick_interval=interval,
+        ).comparer
 
     def __lt__(self, other: time) -> CallableComparer:
         return self.before(other)
@@ -159,6 +199,7 @@ class Clock(FauxThing):
         self,
         start_time: time | None = None,
         end_time: time | None = None,
+        tick_interval: timedelta | None = None,
     ) -> "Clock":
         if start_time is not None:
             start_time = max(start_time, self.start_time or time(0, 0))
@@ -171,11 +212,12 @@ class Clock(FauxThing):
         if self.end_time is not None:
             _id += f".after_{self.end_time.hour}:{self.end_time.minute}"
 
-        new_clock = self.__class__(f"clock.clone.{uuid.uuid4()}")
-        if start_time is not None:
-            new_clock.start_time = start_time
-        if end_time is not None:
-            new_clock.end_time = end_time
+        start_time = start_time or self.start_time
+        end_time = end_time or self.end_time
+        new_clock = self.__class__(f"clock.{start_time}-{end_time}|{tick_interval}")
+        new_clock.start_time = start_time
+        new_clock.end_time = end_time
+        new_clock.tick_interval = tick_interval
         return new_clock
 
     @property

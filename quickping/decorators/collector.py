@@ -13,7 +13,6 @@ class Collector:
     days: list[int]
     event_payload_filter: dict[str, Any]
     func: Callable
-    run_at: list[time]
     things: list["Thing"]
     whens: list["Comparer"]
     after_time: time | None = None
@@ -31,7 +30,6 @@ class Collector:
             "whens",
             "things",
             "days",
-            "run_at",
             "event_payload_filter",
         ):
             setattr(self, key, [])
@@ -57,7 +55,6 @@ class Collector:
             "func": self.func,
             "things": self.all_things(),
             "whens": self.whens,
-            "run_at": self.run_at,
             "idle_time": self.idle_time,
             "route": self.route,
             "run_on_interval": self.run_on_interval,

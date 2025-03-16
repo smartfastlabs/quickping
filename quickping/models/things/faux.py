@@ -1,5 +1,5 @@
 import asyncio
-from typing import TYPE_CHECKING, Optional, Self
+from typing import TYPE_CHECKING, ClassVar, Optional, Self
 
 from quickping.models.things.thing import Thing
 
@@ -13,6 +13,7 @@ class FauxThing(Thing):
     id: str
     task: asyncio.Task | None = None
     quickping: Optional["QuickpingApp"] = None
+    _running: ClassVar[bool] = False
 
     def __init__(
         self,
@@ -28,7 +29,13 @@ class FauxThing(Thing):
         cls.quickping = quickping
 
         if hasattr(cls, "run"):
+            cls._running = True
             cls.task = asyncio.create_task(cls.run())
+
+    @classmethod
+    def stop(cls) -> None:
+        print("Stopping faux thing", cls.__name__)
+        cls._running = False
 
     def load(self, quickping: "QuickpingApp") -> Self:
         """Load the faux thing."""

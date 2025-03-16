@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from datetime import time, timedelta
+from datetime import timedelta
 
 from .collector import Collector
 
@@ -20,15 +20,6 @@ def run_every(
                 minutes=minutes or 0,
                 hours=hours or 0,
             )
-        return collector
-
-    return decorator
-
-
-def run_at(*times: time) -> Callable:
-    def decorator(func: Callable | Collector) -> Collector:
-        collector: Collector = func if isinstance(func, Collector) else Collector(func)
-        collector.run_at.extend(times)
         return collector
 
     return decorator

@@ -79,21 +79,39 @@ class ValueComparer:
     def history(
         self,
         look_back: timedelta | None = None,
+        end_td: timedelta | None = None,
     ) -> list[tuple[datetime, Any]]:
-        if not look_back:
-            return self._value_history
-
-        start_time = datetime.now() - look_back
+        now = datetime.now()
         result = []
-        for time, value in self._value_history:
-            if time < start_time:
-                continue
-            result.append((time, value))
+        if look_back:
+            start_time = now - look_back
+            end_time = now - end_td if end_td else None
+            for time, value in self._value_history:
+                if time < start_time:
+                    continue
+                elif end_time and time > end_time:
+                    break
+                result.append((time, value))
+        else:
+            if end_td:
+                end_time = now - end_td
+                for time, value in self._value_history:
+                    if time > end_time:
+                        break
+                    result.append((time, value))
+            else:
+                result = self._value_history
 
         return result
 
-    def _was(self, value: Any, look_back: timedelta) -> bool:
-        return value in {h[1] for h in self.history(look_back)}
+    def _was(
+        self,
+        value: Any,
+        start_td: timedelta,
+        end_td: timedelta | None = None,
+    ) -> bool:
+        datetime.now()
+        return any(h == value for ts, h in self.history(start_td, end_td))
 
     def is_(self, value: Any) -> CallableComparer:
         return CallableComparer(
@@ -109,12 +127,12 @@ class ValueComparer:
 
     def was(self, value: Any, look_back: timedelta) -> CallableComparer:
         return CallableComparer(
-            lambda: self._was(value, look_back),
+            lambda: self._was(value, look_back, timedelta(seconds=1)),
             things=self.things,
         )
 
     def was_not(self, value: Any, look_back: timedelta) -> CallableComparer:
         return CallableComparer(
-            lambda: not self._was(value, look_back),
+            lambda: not self._was(value, look_back, timedelta(seconds=1)),
             things=self.things,
         )
