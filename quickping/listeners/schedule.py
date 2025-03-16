@@ -5,6 +5,7 @@ from .base import BaseListener
 
 class ScheduleListener(BaseListener):
     def is_triggered(self) -> bool:
+        print("HERE", self, self.is_active())
         if not self.is_active():
             return False
 

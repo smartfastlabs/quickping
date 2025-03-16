@@ -1,6 +1,7 @@
 import asyncio
 import pathlib
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from inspect import isclass
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -137,7 +138,7 @@ class QuickpingApp:
                 if self.app_daemon:
                     if not self.get_entity(collector.scene_id):
                         print("Creating scene", collector.scene_id)
-                        await self.app_daemon.call_service(
+                        await self.call_service(
                             "scene/create",
                             scene_id=collector.scene_id.split("scene.", 1)[-1],
                             entities={collector.scene_id: "on"},
@@ -171,26 +172,27 @@ class QuickpingApp:
             faux_thing.start(self)  # type: ignore
 
     async def on_change(self, change: Change) -> None:
-        self._track_state_change(change)
-        futures = []
-        for listener in self.change_listeners:
-            if listener.wants_change(change):
-                futures.append(
-                    listener.run(
-                        *self.build_args(
-                            listener.func,
-                            change=change,
+        with self._track_state_change(change):
+            futures = []
+            for listener in self.change_listeners:
+                if listener.wants_change(change):
+                    futures.append(
+                        listener.run(
+                            *self.build_args(
+                                listener.func,
+                                change=change,
+                            )
                         )
                     )
-                )
 
-        for idle_listener in self.idle_listeners:
-            if idle_listener.change_applies(change):
-                futures.append(idle_listener.on_change())
+            for idle_listener in self.idle_listeners:
+                if idle_listener.change_applies(change):
+                    futures.append(idle_listener.on_change())
 
         await asyncio.gather(*futures)
 
-    def _track_state_change(self, change: Change) -> None:
+    @contextmanager
+    def _track_state_change(self, change: Change) -> Generator[Thing]:
         thing: Thing | None = self.get_thing(change.thing_id)
         if not thing:
             return
@@ -198,8 +200,14 @@ class QuickpingApp:
         attr: Any = getattr(thing, change.attribute, None)
         if attr and isinstance(attr, ValueComparer):
             attr.set_value(change.new)
-            return
-        thing.properties[change.attribute] = change.new
+        else:
+            thing.properties[change.attribute] = change.new
+
+        try:
+            yield thing
+        finally:
+            if attr and isinstance(attr, ValueComparer):
+                attr.commit()
 
     async def run(self) -> None:
         try:
@@ -264,6 +272,21 @@ class QuickpingApp:
         await asyncio.gather(*futures)
 
     async def call_service(
+        self,
+        service: str,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        if not self.app_daemon:
+            return
+
+        await self.app_daemon.call_service(
+            service,
+            *args,
+            **kwargs,
+        )
+
+    async def call_thing_service(
         self,
         service: str,
         thing_id: str,

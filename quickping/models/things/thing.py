@@ -37,7 +37,7 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
         if not self.quickping:
             raise ValueError("QuickpingApp not set on Thing")
 
-        await self.quickping.call_service(
+        await self.quickping.call_thing_service(
             service,
             thing_id=self.id,
             **kwargs,
