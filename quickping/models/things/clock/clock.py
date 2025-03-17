@@ -146,12 +146,6 @@ class Clock(FauxThing):
             things=[self],
         )
 
-    def __eq__(self, other: time) -> CallableComparer:  # type: ignore
-        return self.between(
-            start=time(other.hour, other.minute),
-            end=time(other.hour, other.minute, 15),
-        )
-
     @classmethod
     def tick(
         cls,
@@ -170,6 +164,12 @@ class Clock(FauxThing):
             f"clock.tick.{interval}",
             tick_interval=interval,
         ).comparer
+
+    def __eq__(self, other: time) -> CallableComparer:  # type: ignore
+        return self.between(
+            start=time(other.hour, other.minute),
+            end=time(other.hour, other.minute, 15),
+        )
 
     def __lt__(self, other: time) -> CallableComparer:
         return self.before(other)

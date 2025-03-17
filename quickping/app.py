@@ -309,8 +309,12 @@ class QuickpingApp:
                 args.append(context[name])
             elif name == "quickping":
                 args.append(self)
+            elif name == "app_daemon" or name == "hass" or name == "appdaemon":
+                if not self.app_daemon:
+                    raise ValueError("AppDaemon not set on QuickpingApp")
+                args.append(self.app_daemon)
             else:
-                args.append("MISSING")
+                raise ValueError(f"Missing argument {name} for {func}")
 
         return args
 
