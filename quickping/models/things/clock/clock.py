@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from quickping.models.change import Change
 from quickping.models.things.faux import FauxThing
 from quickping.utils.clock import get_time
-from quickping.utils.comparer import CallableComparer
+from quickping.utils.comparer import CallableComparer, Comparer
 
 from .day import Day
 from .hour import Hour
@@ -233,3 +233,21 @@ class Clock(FauxThing):
             lambda: datetime.now().weekday() in range(self.MONDAY, self.FRIDAY),
             things=[Clock("clock.daily")],
         )
+
+    def at(self, *args: time | int) -> Comparer:
+        if isinstance(args[0], int):
+            hour = args[0]
+            minute = args[1] if len(args) > 1 else 0
+            second = args[2] if len(args) > 2 else 0
+            return self.__eq__(
+                time(
+                    hour=hour,
+                    minute=minute,  # type: ignore
+                    second=second,  # type: ignore
+                )
+            )
+
+        result: Comparer = self.__eq__(args[0])
+        for other in args[1:]:
+            result |= self.__eq__(other)  # type: ignore
+        return result
