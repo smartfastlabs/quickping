@@ -7,6 +7,7 @@ from quickping.models.things.faux import FauxThing
 from quickping.utils.clock import get_time
 from quickping.utils.comparer import CallableComparer, Comparer
 
+from .date import Date
 from .day import Day
 from .hour import Hour
 
@@ -15,14 +16,6 @@ if TYPE_CHECKING:
 
 
 class Clock(FauxThing):
-    SUNDAY: int = 0
-    MONDAY: int = 1
-    TUESDAY: int = 2
-    WEDNESDAY: int = 3
-    THURSDAY: int = 4
-    FRIDAY: int = 5
-    SATURDAY: int = 6
-
     id: str = "clock"
     start_time: time | None = None
     end_time: time | None = None
@@ -51,6 +44,10 @@ class Clock(FauxThing):
     @property
     def day(self) -> "Day":
         return Day(Clock("clock.daily"))
+
+    @property
+    def date(self) -> "Date":
+        return Date(Clock("clock.date"))
 
     @classmethod
     async def run(cls) -> None:
@@ -219,20 +216,6 @@ class Clock(FauxThing):
         new_clock.end_time = end_time
         new_clock.tick_interval = tick_interval
         return new_clock
-
-    @property
-    def is_weekend(self) -> "CallableComparer":
-        return CallableComparer(
-            lambda: datetime.now().weekday() in [self.SATURDAY, self.SUNDAY],
-            things=[Clock("clock.daily")],
-        )
-
-    @property
-    def is_weekday(self) -> "CallableComparer":
-        return CallableComparer(
-            lambda: datetime.now().weekday() in range(self.MONDAY, self.FRIDAY),
-            things=[Clock("clock.daily")],
-        )
 
     def at(self, *args: time | int) -> Comparer:
         if isinstance(args[0], int):

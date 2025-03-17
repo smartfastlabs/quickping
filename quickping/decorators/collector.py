@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from datetime import time, timedelta
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
@@ -15,8 +15,6 @@ class Collector:
     func: Callable
     things: list["Thing"]
     whens: list["Comparer"]
-    after_time: time | None = None
-    before_time: time | None = None
     disabled: bool = False
     event_filter: str | None = None
     idle_time: timedelta | None = None
@@ -62,8 +60,6 @@ class Collector:
             "event_payload_filter": self.event_payload_filter,
             "scene_id": self.scene_id,
             "days": self.days,
-            "after_time": self.after_time,
-            "before_time": self.before_time,
         }
 
     def all_things(self) -> list["Thing"]:

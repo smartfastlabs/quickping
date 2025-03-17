@@ -56,17 +56,6 @@ class BaseListener(Collector):
     def is_active(self) -> bool:
         if self.disabled:
             return False
-        if (
-            self.after_time is not None
-            and datetime.datetime.now().time() < self.after_time
-        ):
-            return False
-
-        if (
-            self.before_time is not None
-            and datetime.datetime.now().time() > self.before_time
-        ):
-            return False
 
         return any(self.whens) if self.whens else True
 
