@@ -21,28 +21,38 @@ Install through the appdaemon addon in homeassistant.
 ## Quick Start
 
 ```python
-from quickping import AppDaemonApp, Collection, Device
-
+import quickping as qp
 
 # Define your rooms and devices
-class LivingRoom(Collection):
-    lights = Device("light.living_room_table_lamp")
-    shades = Device("cover.living_room")
+class LivingRoom(qp.Collection):
+    lights: Annotated[Device, "light.living_room_table_lamp"]
+    shades: Device = Device("cover.living_room")
     fan = Device("fan.living_room")
 
-class Office(Collection):
+class Office(qp.Collection):
     desk_lamp = Device("light.office_desk")
     computer = Device("switch.computer")
     ac = Device("climate.office")
 
-app = HomeAssistant()
 
 # Use dependency injection to access devices
-@app.on_change(LivingRoom.lights)
-async def handle_living_room_lights(shades: LivingRoom.shades, room: LivingRoom):
+@qp.when(LivingRoom.lights)
+async def handle_living_room_lights(
+    shades: LivingRoom.shades, 
+    room: LivingRoom
+):
     """Automatically manage shades based on light state"""
-    if room.lights.state == "on" and room.shades.state == "closed":
+    if room.lights.is_on and room.shades.is_closed:
         await shades.open()
+        await qp.do(
+            shades.open(),
+            qp.wait(
+                qp.two_minutes, 
+                shades.state == "open",
+            ),
+            notify("Shades are open!")
+        )
+        
     elif room.lights.state == "off" and room.shades.state == "open":
         await shades.close()
 
@@ -79,7 +89,7 @@ class House(Collection):
     # House-wide devices
     doorbell = Device("binary_sensor.doorbell")
 
-@quickping.on_change(House.doorbell)
+@quickping.when(House.doorbell)
 async def handle_doorbell(
     living_room: LivingRoom,
 ):

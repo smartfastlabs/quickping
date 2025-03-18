@@ -71,6 +71,7 @@ class AppDaemonApp(hass.Hass):
             self.tracked[thing.id] = thing
             entity = self.get_entity(thing.id)
             if entity:
+                print("TRACKING", thing.id)
                 entity.listen_state(
                     self.on_state,
                     thing_id=thing.id,

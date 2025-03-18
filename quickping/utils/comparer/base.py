@@ -39,19 +39,20 @@ class Comparer:
         return OrComparer(comparers=[self, other])
 
     def __invert__(self) -> "Comparer":
-        return self.no_trigger()
+        return self.no_trigger
 
+    @property
     def no_trigger(self) -> "Comparer":
         result = self.clone()
         result._things = []
         return result
 
     def clone(self) -> "Comparer":
-        result = self.__class__(
+        return self.__class__(
             comparers=self.comparers,
             things=self._things,
         )
-        if hasattr(self, "children"):
-            self.children.append(result)
 
-        return result
+    @property
+    def silent(self) -> "Comparer":
+        return self.no_trigger

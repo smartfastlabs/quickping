@@ -46,6 +46,7 @@ class QuickpingApp:
         EventListener | HTTPListener | IdleListener | ChangeListener | SceneListener
     ]
     faux_things: list[FauxThing]
+    things: list[Thing]
     app_daemon: Optional["Hass"]
     handlers: dict[str, Any]
 
@@ -72,6 +73,7 @@ class QuickpingApp:
             + self.scene_listeners
         )
         self.faux_things = []
+        self.things = []
         self.app_daemon = app_daemon
 
     async def load_handlers(self, path: str | pathlib.Path) -> None:
@@ -80,6 +82,14 @@ class QuickpingApp:
         for thing in list(self.handlers["Thing"].instances.values()):
             if hasattr(thing, "load"):
                 thing.load(self)
+
+            if isinstance(thing, FauxThing | Collection):
+                continue
+
+            domain, is_valid = thing.id.split(".", 1)
+            if is_valid:
+                self.things.append(thing)
+        self.app_daemon.track(*self.things)  # type: ignore
 
         for collector in self.handlers["Collector"].instances:
             if collector.disabled:
@@ -94,7 +104,7 @@ class QuickpingApp:
                 | SceneListener
             ] = []
 
-            if things := collector.all_things():
+            if collector.all_things():
                 listener: ChangeListener | IdleListener
                 if collector.idle_time is not None:
                     listener = IdleListener(
@@ -108,7 +118,7 @@ class QuickpingApp:
                         **listener_args,
                     )
                     self.change_listeners.append(listener)
-                self.app_daemon.track(*things)  # type: ignore
+
                 listeners.append(listener)
 
             if collector.event_filter or collector.event_payload_filter:
@@ -182,9 +192,12 @@ class QuickpingApp:
     def _track_state_change(self, change: Change) -> Generator[Thing]:
         thing: Thing | None = self.get_thing(change.thing_id)
         if not thing:
+            print(f"Thing {change.thing_id} not found")
             return
 
         attr: Any = getattr(thing, change.attribute, None)
+        if change.thing_id == "cover.office_blind_cover":
+            print("Cover change", change, attr)
         if attr and isinstance(attr, ValueComparer):
             attr.set_value(change.new)
         elif hasattr(thing, "properties"):
@@ -307,9 +320,9 @@ class QuickpingApp:
                 args.append(collection)
             elif name in context:
                 args.append(context[name])
-            elif name == "quickping":
+            elif name in ("quickping", "qp", "app"):
                 args.append(self)
-            elif name == "app_daemon" or name == "hass" or name == "appdaemon":
+            elif name in ("app_daemon", "hass", "appdaemon"):
                 if not self.app_daemon:
                     raise ValueError("AppDaemon not set on QuickpingApp")
                 args.append(self.app_daemon)
@@ -325,6 +338,7 @@ class QuickpingApp:
         if type(entity_id) is not str:
             raise ValueError(f"Entity ID must be a string, got {type(entity_id)}")
 
+        print("Getting entity", entity_id)
         return self.app_daemon.get_entity(entity_id)
 
     def get_thing(self, thing_id: str) -> Thing | None:

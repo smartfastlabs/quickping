@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 class ValueComparer:
     thing: Optional["Thing"] = None
     value: Any
-    children: list["ValueComparer"]
     _value_history: list[tuple[datetime, Any]]
 
     def __init__(
@@ -19,7 +18,6 @@ class ValueComparer:
         thing: Optional["Thing"] = None,
     ):
         self._value_history = []
-        self.children = []
         self.value = value
         self.thing = thing
 
@@ -60,18 +58,11 @@ class ValueComparer:
         )
 
     def clone(self) -> "ValueComparer":
-        result = self.__class__(self.value, thing=self.thing)
-        self.children.append(result)
-
-        return result
+        return self.__class__(self.value, thing=self.thing)
 
     def set_value(self, value: Any) -> None:
-        # TODO: FIGURE OUT IF WE NEED TO TRACK CHILDREN
         print("Setting value to: ", value, id(self))
         self.value = value
-        for child in self.children:
-            print("Setting value on child", child)
-            child.set_value(value)
 
     def commit(self) -> None:
         self._value_history.append((datetime.now(), self.value))

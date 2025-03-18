@@ -1,6 +1,8 @@
+import asyncio
 import importlib
 import os
 from datetime import datetime, time as py_time, timedelta
+from time import time as timer
 
 from . import app, decorators, models
 from .app import QuickpingApp as QuickpingApp
@@ -32,8 +34,10 @@ from .models import (
     Weather as Weather,
 )
 from .utils import importer
+from .utils.comparer import Comparer as Comparer
 
 Time = Clock("clock.default")
+Day = Time.day
 
 
 def load():
@@ -47,6 +51,25 @@ def reload():
 
 
 load()
+
+
+async def wait(seconds: float, *comparables: Comparer) -> bool:
+    if not comparables:
+        await asyncio.sleep(seconds)
+        return True
+
+    comparer = comparables[0]
+    for comp in comparables[1:]:
+        comparer |= comp
+
+    seconds += timer()
+    await asyncio.sleep(0.001)  # let the event loop clear out before we start polling
+    result: bool = bool(comparer)
+    while not result and timer() < seconds:
+        result = bool(comparer)
+        await asyncio.sleep(0.1)  # sleep for a bit to let the event loop do its thing
+
+    return result
 
 
 class time(py_time):  # noqa: N801
