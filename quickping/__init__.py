@@ -72,6 +72,32 @@ async def wait(seconds: float, *comparables: Comparer) -> bool:
     return result
 
 
+def any(*comparables: Comparer) -> Comparer:
+    if not comparables:
+        raise ValueError("Must provide at least one comparables")
+
+    if len(comparables) == 1:
+        return comparables[0]
+
+    comparer = comparables[0]
+    for comp in comparables[1:]:
+        comparer |= comp
+    return comparer
+
+
+def all(*comparables: Comparer) -> Comparer:
+    if not comparables:
+        raise ValueError("Must provide at least one comparables")
+
+    if len(comparables) == 1:
+        return comparables[0]
+
+    comparer = comparables[0]
+    for comp in comparables[1:]:
+        comparer &= comp
+    return comparer
+
+
 class time(py_time):  # noqa: N801
     def __add__(self, delta: timedelta) -> "time":
         dt = datetime.combine(datetime.today(), self)
