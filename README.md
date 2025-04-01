@@ -1,9 +1,9 @@
-# [PRE-ALPHA] Quickping 
-_THIS IS VERSION 0.0.) AND WILL CONTINUE TO CHANGE AND EVOLVE._
+# [WIP] Quickping 
+_THIS IS VERSION 0.0.1 AND WILL CONTINUE TO CHANGE AND EVOLVE._
 
-A modern, type-safe Python library for creating Home Assistant automations using native async Python and decorators. Quickping allows you to structure your automations similar to a modern web app. 
+A modern, type-safe Python library for creating Home Assistant automations using native async Python. Quickping allows you to structure your automations similar to a modern web app. 
 
-#### Features
+## Features
 
 - Modern python development environment, with native async/await support.
 - Full type hints for enhanced development experience, linting, and error catching
@@ -36,49 +36,41 @@ A modern, type-safe Python library for creating Home Assistant automations using
 
 ## Extending Quickping [TODO]
 * [Custom Thing Types](#custom-things): You can get really fancy
-* [Faux Things](#faux-things): A lot like a Thing, but its not a real Thing.
+* [Faux Things](#faux-things): A lot like a Thing, but its not a real Thing. [TODO]
 
 ## Other Stuff
-* [License](#license)
-* [Contributing](#contributing)
-
+* [License](#license): **MIT**
+* [Contributing](#contributing): **DO IT**
 
 # Installation
-
-Install through the appdaemon addon in homeassistant.
+```bash
+pip install quickping
+```
 
 # Quick Start
+You must have homeassistant running (FOR NOW); then install [App Daemon](https://github.com/hassio-addons/addon-appdaemon/blob/main/appdaemon/DOCS.md).  Follow A.D. Documentation to install quickping and created you're first App.:
+## Update `apps.yaml`
+```yaml
+quickping_app:
+  module: qp_app
+  class: quickping_app
+```
+
+## Create `quickping_app.py`
+In this example we create a single `Device` with the id `light.test-light`.  The handler `doit` is run anytime anything about the light changes. 
 
 ```python
 import quickping as qp
 
-# Define your rooms and devices
-class LivingRoom(qp.Collection):
-    # All of these ways work the same 
-    lights: Annotated[qp.Device, "light.living_room_table_lamp"]
-    shades: Shade = qp.Shade("cover.living_room")
-    fan = qp.Fan("fan.living_room")
+device = qp.Device("light.living_room_table_lamp")
 
+@qp.when(light)
+async def doit(light=device):
+    print("Lights Change!, They are", light.state.value)
 
-# Use dependency injection to access devices
-@qp.when(LivingRoom.lights.is_on)
-async def handle_living_room_lights(
-    shades: LivingRoom.shades, 
-    room: LivingRoom
-):
-    """Automatically manage shades based on light state"""
-    if room.shades.is_closed:
-        await qp.serial(
-            shades.open(),
-            qp.wait(
-                qp.two_minutes, 
-                shades.state == "open",
-            ),
-            print("Shades are open!")
-        )
-    else:
-        await shades.close()
-
+class QuickpingApp(qp.integrations.app_daemon.AppDaemonApp):
+    pass
+    
 ```
 
 # Things
@@ -164,6 +156,7 @@ Handlers are where you write your code!  Handlers are defined and registered by 
 * [@route](#route): HTTP Handlers 
 * [@on_idle](#on_idle): Run when a certain set of conditions is not met for a set period of time **(EXPERIMENTAL)**
 * [@scene](#scene): Registers a scene with H.A.
+* [@daemon](#daemon): Just run in the background, restart if it dies. **[NOT IMPLEMENTED]**
 
 
 ## @when
@@ -270,6 +263,11 @@ async def toggle_lights(
         "brightness": brightness
     }
 ```
+
+## @scene
+
+**Turns any handler into a scene and registers it with Home Assistant.**
+
 # Comparers
 Comparers are heavily influenced by SQLAlchemy's query builder; it allows you to use native python to define very complex filters.  Comparers **use** (or abuse, depending on who you ask...)  python's ["dunder methods"](https://www.geeksforgeeks.org/dunder-magic-methods-python/)...this allows:
 
@@ -282,13 +280,27 @@ Comparers are heavily influenced by SQLAlchemy's query builder; it allows you to
 
 Quickping evaluates the equality of your `Comparables` on every statechange; any handler with a **NEWLY** satisfied constraint is run.
 
-By default in `@when` all criteria are combine via a logical and; you can also be more explicit:
+By default in `@when` all criteria are combine via a logical and; you can also be more explicit with `qp.any` and `qp.all`:
 
 ```python
 @qp.when(
-    qp.any(qp.seven_am > qp.Time, qp.Time > qp.nine_am),
-    Weather.temperature >= 80,
+    qp.any(
+        qp.seven_am > qp.Time, 
+        qp.all(qp.Time > qp.nine_am, Weather.temperature >= 80)
+    ),
 )
+```
+
+**NOTE:** You can combine all of this filtering logic...for arguments sake
+```python
+@qp.when(
+    qp.Time > qp.seven_am,
+    qp.Time.tick(qp.five_minutes),
+    Weather.temperature < 80,
+    qp.Time.day.is_weekday,
+)
+async def doit():
+    """ Run every 5 minutes weekdays after 7am if it is under 80 degrees"""
 ```
 # Dependency Injection
 
@@ -346,6 +358,13 @@ def async doit():
 @when(qp.Time.at(qp.seven_am, qp.five_pm))
 def async doit():
     """run at 7am and 5pm"""
+    
+@when(qp.any(
+    qp.Time == qp.seven_am, 
+    qp.Time == qp.five_pm,
+))
+def async doit():
+    """run at 7am and 5pm"""
 ```
 
 ### Repeating Tasks
@@ -372,7 +391,7 @@ Quickping is designed to provide a professional Python development experience. T
 For example, when writing:
 
 ```python
-@app.on_change(LivingRoom.lights)
+@app.when(LivingRoom.lights)
 async def handle_lights(room: LivingRoom):
     # Your IDE will suggest all available properties and methods
     await room.shades.open()  # Type-checked and autocompleted
