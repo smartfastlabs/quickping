@@ -3,12 +3,20 @@ import os
 import sys
 from typing import Any
 
-from quickping import listeners, models
-from quickping.decorators.collector import Collector
-
 
 def fix_name(name: str) -> str:
     return name.split(".")[0].replace("-", "_")
+
+
+def _import_modules() -> dict[str, Any]:
+    from quickping import listeners, models
+    from quickping.decorators.collector import Collector
+
+    return {
+        "listeners": listeners,
+        "Collector": Collector,
+        "Thing": models.things.Thing,
+    }
 
 
 def unload_directory(
@@ -29,13 +37,9 @@ def unload_directory(
 
 
 def load_directory_old(path: str) -> dict[str, Any]:
-    modules = {
-        "listeners": listeners,
-        "Collector": Collector,
-        "Thing": models.things.Thing,
-    }
-    listeners.clear()
-    Collector.clear()
+    modules = _import_modules()
+    modules["listeners"].clear()
+    modules["Collector"].clear()
     unload_directory(path)
 
     for root, _, filenames in os.walk(path):
@@ -54,14 +58,10 @@ def load_directory_old(path: str) -> dict[str, Any]:
 
 
 def load_directory(path: str) -> dict[str, Any]:
-    modules = {
-        "listeners": listeners,
-        "Collector": Collector,
-        "Thing": models.things.Thing,
-    }
+    modules = _import_modules()
+    modules["listeners"].clear()
+    modules["Collector"].clear()
     package_name = os.path.basename(path)
-    listeners.clear()
-    Collector.clear()
     unload_directory(path)
 
     init_path = os.path.join(path, "__init__.py")
@@ -69,7 +69,10 @@ def load_directory(path: str) -> dict[str, Any]:
         with open(init_path, "w"):
             pass
 
-    spec = importlib.util.spec_from_file_location(package_name, init_path)  # type: ignore
+    spec = importlib.util.spec_from_file_location(  # type: ignore
+        package_name,
+        init_path,
+    )
     package = importlib.util.module_from_spec(spec)  # type: ignore
     sys.modules[package_name] = package
     modules[package_name] = package
