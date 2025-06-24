@@ -62,20 +62,20 @@ class Thing(Base, SingletonPerId, metaclass=AttributesMeta):
     def is_on(self) -> Comparer:
         return self.state == self._on_state
 
-    def was_on(self, *args: Any, **kwargs: Any) -> Comparer:
+    def was_on(self, *args, **kwargs) -> Comparer:
         return self.state.was(self._on_state, *args, **kwargs)
 
-    def was_not_on(self, *args: Any, **kwargs: Any) -> Comparer:
+    def was_not_on(self, *args, **kwargs) -> Comparer:
         return self.state.was_not(self._on_state, *args, **kwargs)
 
     @property
     def is_off(self) -> Comparer:
         return self.state == self._off_state
 
-    def was_off(self, *args: Any, **kwargs: Any) -> Comparer:
+    def was_off(self, *args, **kwargs) -> Comparer:
         return self.state.was(self._off_state, *args, **kwargs)
 
-    def was_not_off(self, *args: Any, **kwargs: Any) -> Comparer:
+    def was_not_off(self, *args, **kwargs) -> Comparer:
         return self.state.was_not(self._off_state, *args, **kwargs)
 
     @classmethod

@@ -1,8 +1,10 @@
-import asyncio
 import importlib
-import os
-from datetime import datetime, time as py_time, timedelta
 from time import time as timer
+import asyncio
+import os
+from datetime import datetime
+from datetime import time as py_time
+from datetime import timedelta
 
 from . import app, decorators, models
 from .app import QuickpingApp as QuickpingApp
@@ -12,27 +14,25 @@ from .decorators.on_idle import on_idle as on_idle
 from .decorators.route import route as route
 from .decorators.scene import scene as scene
 from .decorators.when import when as when
-from .models import (
-    TV as TV,
-    Attribute as Attribute,
-    Attributes as Attributes,
-    BinarySensor as BinarySensor,
-    Blind as Blind,
-    Change as Change,
-    Clock as Clock,
-    Collection as Collection,
-    Device as Device,
-    Event as Event,
-    FancyLight as FancyLight,
-    FauxThing as FauxThing,
-    Light as Light,
-    MotionSensor as MotionSensor,
-    Sensor as Sensor,
-    Sun as Sun,
-    Switch as Switch,
-    Thing as Thing,
-    Weather as Weather,
-)
+from .models import TV as TV
+from .models import Attribute as Attribute
+from .models import Attributes as Attributes
+from .models import BinarySensor as BinarySensor
+from .models import Blind as Blind
+from .models import Change as Change
+from .models import Clock as Clock
+from .models import Collection as Collection
+from .models import Device as Device
+from .models import Event as Event
+from .models import FancyLight as FancyLight
+from .models import FauxThing as FauxThing
+from .models import Light as Light
+from .models import MotionSensor as MotionSensor
+from .models import Sensor as Sensor
+from .models import Sun as Sun
+from .models import Switch as Switch
+from .models import Thing as Thing
+from .models import Weather as Weather
 from .utils import importer
 from .utils.comparer import Comparer as Comparer
 
@@ -70,32 +70,6 @@ async def wait(seconds: float, *comparables: Comparer) -> bool:
         await asyncio.sleep(0.1)  # sleep for a bit to let the event loop do its thing
 
     return result
-
-
-def any(*comparables: Comparer) -> Comparer:
-    if not comparables:
-        raise ValueError("Must provide at least one comparables")
-
-    if len(comparables) == 1:
-        return comparables[0]
-
-    comparer = comparables[0]
-    for comp in comparables[1:]:
-        comparer |= comp
-    return comparer
-
-
-def all(*comparables: Comparer) -> Comparer:
-    if not comparables:
-        raise ValueError("Must provide at least one comparables")
-
-    if len(comparables) == 1:
-        return comparables[0]
-
-    comparer = comparables[0]
-    for comp in comparables[1:]:
-        comparer &= comp
-    return comparer
 
 
 class time(py_time):  # noqa: N801

@@ -83,7 +83,7 @@ class QuickpingApp:
             if hasattr(thing, "load"):
                 thing.load(self)
 
-            if isinstance(thing, FauxThing | Collection):
+            if isinstance(thing, (FauxThing, Collection)):
                 continue
 
             domain, is_valid = thing.id.split(".", 1)
